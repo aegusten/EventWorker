@@ -1,0 +1,132 @@
+:root {
+  --bg-main: #d0d6d6;
+  --bg-secondary: #86b9b0;
+  --btn-main: #4c7273;
+  --btn-hover: #365c5c;
+  --text-main: #041421;
+  --text-subtle: #042630;
+  --white: #ffffff;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  font-family: 'Segoe UI', sans-serif;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-image: radial-gradient(ellipse at center, rgba(76, 114, 115, 0.15) 0%, transparent 70%);
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.login-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+}
+
+.login-box {
+  background: var(--bg-secondary);
+  padding: 3.5rem;
+  border-radius: 16px;
+  max-width: 460px;
+  width: 100%;
+  box-shadow: 0 4px 30px rgba(76, 114, 115, 0.3);
+  border: 2px solid var(--btn-main);
+  text-align: center;
+}
+
+.login-box h2 {
+  color: var(--text-main);
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  font-size: 1.6rem;
+}
+
+.form-label {
+  color: var(--text-subtle);
+  font-weight: 600;
+  text-align: left;
+  display: block;
+  margin-top: 0.75rem;
+  margin-bottom: 0.25rem;
+  font-size: 0.95rem;
+}
+
+input.form-control {
+  background-color: var(--white);
+  border: 1px solid var(--btn-main);
+  color: var(--text-main);
+  margin-bottom: 1rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: 8px;
+}
+
+.btn,
+.btn-login,
+.btn-outline-light,
+.btn-register {
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.btn-login,
+.btn-register,
+#signupSubmitBtn {
+  background-color: var(--btn-main);
+  color: var(--white);
+  border: 1px solid var(--btn-main);
+}
+
+.btn-login:hover,
+.btn-register:hover,
+#signupSubmitBtn:hover {
+  background-color: var(--btn-hover);
+  border-color: var(--btn-hover);
+}
+
+.btn-outline-light {
+  background-color: var(--btn-main);
+  color: var(--white);
+  border: 1px solid var(--btn-main);
+}
+
+.btn-outline-light:hover {
+  background-color: var(--btn-hover);
+  border-color: var(--btn-hover);
+  color: var(--white);
+}
+
+footer.login-footer {
+  font-size: 0.85rem;
+  color: var(--text-subtle);
+  padding: 1rem 0;
+  text-align: center;
+  font-weight: 500;
+}
+
+.type-toggle {
+  padding: 6px;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: 0.3s ease-in-out;
+}
+
+.type-toggle.active-type {
+  border-color: var(--btn-main);
+  background-color: var(--btn-hover);
+}

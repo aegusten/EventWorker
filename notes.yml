@@ -1,0 +1,21 @@
+backend->
+docker-compose up --build
+docker-compose exec web python manage.py migrate
+
+-----------
+users foulder ->
+docker-compose exec web python manage.py makemigrations users
+docker-compose exec web python manage.py migrate
+
+--------------
+backend foulder ->
+docker-compose exec web python manage.py makemigrations backend
+docker-compose exec web python manage.py migrate
+
+---
+# Step 1: Migrate required dependencies
+docker-compose exec web python manage.py migrate contenttypes
+docker-compose exec web python manage.py migrate auth
+docker-compose exec web python manage.py migrate users
+docker-compose exec web python manage.py migrate admin
+docker-compose exec web python manage.py migrate

@@ -1,0 +1,36 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:15
+    restart: always
+    container_name: eventwork-db
+    env_file:
+      - .env/.postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - eventwork_network
+      
+  web:
+    build: .
+    restart: always
+    container_name: eventwork-web
+    depends_on:
+      - db
+    env_file:
+      - .env/.postgres
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/code
+    networks:
+      - eventwork_network
+
+networks:
+  eventwork_network:
+
+volumes:
+  postgres_data:
