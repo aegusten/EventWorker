@@ -1,7 +1,6 @@
-from django.urls import path
+from django.contrib import admin
+from django.urls import path, include
 
 urlpatterns = [
-    # You can add views later
-    # Example:
-    # path('jobs/', views.job_list, name='job_list'),
+    path('admin/', admin.site.urls)
 ]

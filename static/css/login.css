@@ -130,3 +130,8 @@ footer.login-footer {
   border-color: var(--btn-main);
   background-color: var(--btn-hover);
 }
+
+.type-toggle.disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}

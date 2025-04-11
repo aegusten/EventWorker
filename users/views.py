@@ -12,6 +12,8 @@ from django.shortcuts import get_object_or_404
 import json
 from django.core.exceptions import ValidationError
 from django import forms
+from .forms import RegisterForm
+from .models import User, SecurityQuestion, UserSecurityAnswer, ApplicantProfile, OrganizationProfile
 
 User = get_user_model()
 
@@ -128,5 +130,106 @@ def validate_login_ajax(request):
             return JsonResponse({"valid": False, "user_exists": False, "message": "User not found"})
 
 
+@csrf_exempt
 def register_view(request):
-    return HttpResponse("Register page placeholder")
+    if request.method == "POST":
+        form = RegisterForm(request.POST)
+        user_type = request.POST.get("user_type", "job_seeker")
+
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.user_type = user_type
+            user.save()
+
+            # Security Answers
+            answers = [
+                (form.cleaned_data['question1_subquestion'], form.cleaned_data['answer1']),
+                (form.cleaned_data['question2_subquestion'], form.cleaned_data['answer2']),
+                (form.cleaned_data['question3_subquestion'], form.cleaned_data['answer3']),
+            ]
+            for idx, (q_text, answer) in enumerate(answers):
+                if answer.strip():
+                    question_obj = SecurityQuestion.objects.all()[idx]  # assumes Q1, Q2, Q3 order
+                    UserSecurityAnswer.objects.create(
+                        user=user,
+                        question=question_obj,
+                        question_text=q_text,
+                        answer=answer
+                    )
+
+            # Create related profile
+            if user_type == "job_seeker":
+                ApplicantProfile.objects.create(
+                    user=user,
+                    education=request.POST.get("education", ""),
+                    availability=request.POST.get("availability", "part-time"),
+                    preferred_location=request.POST.get("preferred_location", ""),
+                    job_type_interest=request.POST.get("job_type_interest", ""),
+                    skills=request.POST.get("skills", ""),
+                    location_of_interest=request.POST.get("location_of_interest", "")
+                )
+            else:
+                OrganizationProfile.objects.create(
+                    user=user,
+                    license_number=request.POST.get("license_number", ""),
+                    company_name=request.POST.get("company_name", ""),
+                    establishment_date=request.POST.get("establishment_date", "2000-01-01"),
+                    location=request.POST.get("org_location", ""),
+                    achievements=request.POST.get("achievements", ""),
+                    sector=request.POST.get("sector", ""),
+                    company_type=request.POST.get("company_type", "")
+                )
+
+            login(request, user)
+            return JsonResponse({"success": True})
+        else:
+            return JsonResponse({"success": False, "errors": form.errors})
+
+    return JsonResponse({"error": "Invalid method"}, status=400)
+
+@csrf_exempt
+def reset_password(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        id_number = data.get('id')
+        new_password = data.get('newPassword')
+        answers = data.get('answers')
+
+        user = User.objects.filter(id_number=id_number).first()
+        if not user:
+            return JsonResponse({'success': False, 'message': 'User not found'})
+
+        valid_count = 0
+        for ans in answers:
+            if UserSecurityAnswer.objects.filter(
+                user=user,
+                question_text=ans['question'],
+                answer__iexact=ans['answer']
+            ).exists():
+                valid_count += 1
+
+        if valid_count >= 2:
+            user.set_password(new_password)
+            user.save()
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({'success': False, 'message': 'Incorrect answers'})
+
+    return JsonResponse({'success': False, 'message': 'Invalid request'}, status=400)
+
+@csrf_exempt
+def get_security_questions(request):
+    if request.method == "GET":
+        questions = SecurityQuestion.objects.all()
+        data = []
+
+        for q in questions:
+            data.append({
+                "option1": q.option1,
+                "option2": q.option2,
+                "option3": q.option3
+            })
+
+        return JsonResponse(data, safe=False)
+    
+    return JsonResponse({"error": "Invalid request method"}, status=405)

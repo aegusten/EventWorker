@@ -1,4 +1,4 @@
-INSERT INTO accounts_securityquestion (question_text, option1, option2, option3)
+INSERT INTO users_securityquestion (question_text, option1, option2, option3)
 VALUES 
   (
     'Security Question 1',

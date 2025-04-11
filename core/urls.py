@@ -9,7 +9,7 @@ from django.conf import settings
 urlpatterns = [
     path('', home_redirect_view),
     path('admin/', admin.site.urls),
-    path('users/', include('users.urls')),
+    path('account/', include('users.urls')),
     path('jobs/', include('backend.urls')),
     path('backend/', include('backend.urls')),
 
