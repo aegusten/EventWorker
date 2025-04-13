@@ -1,18 +1,40 @@
 from django.contrib.auth.base_user import BaseUserManager
 
-class UserManager(BaseUserManager):
-    use_in_migrations = True
+class ApplicantManager(BaseUserManager):
+    def create_user(self, id_number, full_name, email, password=None, **extra_fields):
+        if not id_number or not email:
+            raise ValueError("Passport ID and email are required.")
+        email = self.normalize_email(email)
+        applicant = self.model(
+            id_number=id_number,
+            full_name=full_name,
+            email=email,
+            **extra_fields
+        )
+        applicant.set_password(password)
+        applicant.save(using=self._db)
+        return applicant
 
-    def create_user(self, id_number, full_name, password=None, **extra_fields):
-        if not id_number:
-            raise ValueError("The ID number must be set")
-        extra_fields.setdefault('is_active', True)
-        user = self.model(id_number=id_number, full_name=full_name, **extra_fields)
-        user.set_password(password)
-        user.save(using=self._db)
-        return user
-
-    def create_superuser(self, id_number, full_name, password=None, **extra_fields):
-        extra_fields.setdefault('is_staff', True)
+    def create_superuser(self, id_number, full_name, email, password=None, **extra_fields):
         extra_fields.setdefault('is_superuser', True)
-        return self.create_user(id_number, full_name, password, **extra_fields)
+        return self.create_user(id_number, full_name, email, password, **extra_fields)
+
+
+class OrganizationManager(BaseUserManager):
+    def create_user(self, id_number, full_name, email, password=None, **extra_fields):
+        if not id_number or not email:
+            raise ValueError("Passport ID and email are required.")
+        email = self.normalize_email(email)
+        organization = self.model(
+            id_number=id_number,
+            full_name=full_name,
+            email=email,
+            **extra_fields
+        )
+        organization.set_password(password)
+        organization.save(using=self._db)
+        return organization
+
+    def create_superuser(self, id_number, full_name, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_superuser', True)
+        return self.create_user(id_number, full_name, email, password, **extra_fields)

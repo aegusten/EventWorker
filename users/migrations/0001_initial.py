@@ -47,7 +47,7 @@ class Migration(migrations.Migration):
                 'abstract': False,
             },
             managers=[
-                ('objects', users.managers.UserManager()),
+                ('objects', users.managers.OrganizationManager()),
             ],
         ),
         migrations.CreateModel(
