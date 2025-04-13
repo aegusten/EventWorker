@@ -1,185 +1,176 @@
-<div class="modal fade" id="signupModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-      <div class="modal-content">
-        <form id="signupForm" method="POST" enctype="multipart/form-data" action="{% url 'register' %}">
-          {% csrf_token %}
-          <div class="modal-body">
-            <input type="hidden" name="user_type" id="user_type" value="applicant">
+{% load static %}
 
-            <!-- User type toggle -->
-            <div class="d-flex justify-content-center gap-5 mb-4">
-              <div id="applicantIcon" class="type-toggle active-type" role="button">
-                <img src="{% static 'img/applicant-icon.png' %}" width="48" alt="Applicant">
-                <div class="fw-semibold mt-1 text-center">Applicant</div>
-              </div>
-              <div id="organizationIcon" class="type-toggle" role="button">
-                <img src="{% static 'img/organization-icon.png' %}" width="48" alt="Organization">
-                <div class="fw-semibold mt-1 text-center">Organization</div>
-              </div>
+<div class="modal-dialog modal-lg modal-dialog-centered">
+  <div class="modal-content">
+    <form id="signupForm" method="POST" enctype="multipart/form-data" action="{% url 'register' %}">
+      {% csrf_token %}
+      <div class="modal-body">
+        <input type="hidden" name="user_type" id="user_type" value="applicant">
+        <div class="d-flex justify-content-center gap-5 mb-4">
+          <div id="applicantIcon" class="type-toggle active-type" role="button">
+            <img src="{% static 'img/applicant-icon.png' %}" width="48" alt="Applicant">
+            <div class="fw-semibold mt-1 text-center">Applicant</div>
+          </div>
+          <div id="organizationIcon" class="type-toggle" role="button">
+            <img src="{% static 'img/organization-icon.png' %}" width="48" alt="Organization">
+            <div class="fw-semibold mt-1 text-center">Organization</div>
+          </div>
+        </div>
+
+        <div id="signupStep1" class="px-3 py-2">
+          <div class="row g-4">
+            <div class="col-md-6 applicant-only">
+              <label class="form-label fw-bold">ID Number</label>
+              <input type="text" class="form-control" name="id_number">
             </div>
-
-            <!-- Step 1 -->
-            <div id="signupStep1" class="px-3 py-2">
-              <div class="row g-4">
-                <div class="col-md-6">
-                  <label class="form-label fw-bold">Passport ID</label>
-                  <input type="text" class="form-control" name="id_number" required>
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label fw-bold">Full Name</label>
-                  <input type="text" class="form-control" name="full_name" required>
-                </div>
-
-                <div class="col-md-6">
-                  <label class="form-label fw-bold">Phone</label>
-                  <input type="tel" class="form-control" name="phone_number" required>
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label fw-bold">Age</label>
-                  <input type="number" class="form-control" name="age" min="1" required>
-                </div>
-
-                <div class="col-md-6 applicant-only d-none">
-                  <label class="form-label fw-bold">Country</label>
-                  <input type="text" class="form-control" name="country">
-                </div>
-                <div class="col-md-6 applicant-only d-none">
-                  <label class="form-label fw-bold">Address</label>
-                  <input type="text" class="form-control" name="address">
-                </div>
-
-                <div class="col-md-6">
-                  <label class="form-label fw-bold">Password</label>
-                  <input type="password" class="form-control" name="password1" required>
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label fw-bold">Confirm Password</label>
-                  <input type="password" class="form-control" name="password2" required>
-                </div>
-              </div>
-
-              <div class="d-grid mt-4">
-                <button type="button" class="n btn-outline-light mt-3 w-100" id="signupNextBtn">Next</button>
-              </div>
+            <div class="col-md-6 org-only d-none">
+              <label class="form-label fw-bold">License Number</label>
+              <input type="text" class="form-control" name="license_number">
             </div>
-
-            <!-- Step 2 -->
-            <div id="signupStep2" class="px-3 py-2 d-none">
-              <div class="row g-4">      
-
-                <!-- Applicant Specific -->
-                <div class="col-md-6 applicant-only d-none">
-                  <label class="form-label fw-bold">Education</label>
-                  <input type="text" class="form-control" name="education" required>
-                </div>
-                <div class="col-md-6 applicant-only d-none">
-                  <label class="form-label fw-bold">CV</label>
-                  <input type="file" class="form-control" name="cv" required>
-                </div>
-                <div class="col-md-6 applicant-only d-none">
-                  <label class="form-label fw-bold">Availability</label>
-                  <select class="form-control" name="availability" required>
-                    <option value="part-time">Part-time</option>
-                    <option value="volunteer">Volunteer</option>
-                    <option value="full-time">Full-time</option>
-                  </select>
-                </div>
-                <div class="col-md-6 applicant-only d-none">
-                  <label class="form-label fw-bold">Preferred Location</label>
-                  <input type="text" class="form-control" name="preferred_location" required>
-                </div>
-                <div class="col-md-6 applicant-only d-none">
-                  <label class="form-label fw-bold">Job Type Interested</label>
-                  <select class="form-control" name="job_type_interest" required>
-                    <option value="full-time">Full-time</option>
-                    <option value="part-time">Part-time</option>
-                    <option value="volunteer">Volunteer</option>
-                  </select>
-                </div>
-                <div class="col-md-6 applicant-only d-none">
-                  <label class="form-label fw-bold">Skills</label>
-                  <input type="text" class="form-control" name="skills" required>
-                </div>
-                <div class="col-md-6 applicant-only d-none">
-                  <label class="form-label fw-bold">Location of Interest</label>
-                  <input type="text" class="form-control" name="location_of_interest" required>
-                </div>
-
-                <!-- Organization Specific -->
-                <div class="col-md-6 org-only d-none">
-                  <label class="form-label fw-bold">License Number</label>
-                  <input type="text" class="form-control" name="license_number" required>
-                </div>
-                <div class="col-md-6 org-only d-none">
-                  <label class="form-label fw-bold">Company Name</label>
-                  <input type="text" class="form-control" name="company_name" required>
-                </div>
-                <div class="col-md-6 org-only d-none">
-                  <label class="form-label fw-bold">Establishment Date</label>
-                  <input type="date" class="form-control" name="establishment_date" required>
-                </div>
-                <div class="col-md-6 org-only d-none">
-                  <label class="form-label fw-bold">Organization Location</label>
-                  <input type="text" class="form-control" name="org_location" required>
-                </div>
-                <div class="col-md-6 org-only d-none">
-                  <label class="form-label fw-bold">Achievements</label>
-                  <input type="text" class="form-control" name="achievements" required>
-                </div>
-                <div class="col-md-6 org-only d-none">
-                  <label class="form-label fw-bold">Sector</label>
-                  <select class="form-control" name="sector" required>
-                    <option value="IT">IT</option>
-                    <option value="NGO">NGO</option>
-                    <option value="Aviation">Aviation</option>
-                    <option value="Business">Business</option>
-                    <option value="Healthcare">Healthcare</option>
-                    <option value="Education">Education</option>
-                    <option value="Finance">Finance</option>
-                    <option value="Construction">Construction</option>
-                    <option value="Retail">Retail</option>
-                    <option value="Hospitality">Hospitality</option>
-                    <option value="Other">Other</option>
-                  </select>
-                  
-                </div>
-                <div class="col-md-6 org-only d-none">
-                  <label class="form-label fw-bold">Company Type</label>
-                  <select class="form-control" name="company_type" required>
-                    <option value="Small">Small</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Large">Large</option>
-                  </select>
-                </div>
-
-                <!-- Security Questions -->
-                <div class="col-md-6">
-                  <label class="form-label fw-bold">Security Question 1</label>
-                  <select class="form-control" name="question1_subquestion" required></select>
-                  <input type="text" class="form-control mt-2" name="answer1" required placeholder="Answer">
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label fw-bold">Security Question 2</label>
-                  <select class="form-control" name="question2_subquestion" required></select>
-                  <input type="text" class="form-control mt-2" name="answer2" required placeholder="Answer">
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label fw-bold">Security Question 3</label>
-                  <select class="form-control" name="question3_subquestion"></select>
-                  <input type="text" class="form-control mt-2" name="answer3" placeholder="Answer (optional)">
-                </div>
-              </div>
-
-              <div class="d-grid mt-4">
-                <button type="submit" class="n btn-outline-light mt-3 w-100">Register</button>
-              </div>
-              <div class="d-grid mt-2">
-                <button type="button" class="n btn-outline-light mt-3 w-100" id="signupBackBtn">Back</button>
-              </div>
-              
+            <div class="col-md-6 applicant-only">
+              <label class="form-label fw-bold">Full Name</label>
+              <input type="text" class="form-control" name="full_name">
+            </div>
+            <div class="col-md-6 org-only d-none">
+              <label class="form-label fw-bold">Organization Name</label>
+              <input type="text" class="form-control" name="organization_name">
+            </div>
+            <div class="col-md-6 applicant-only">
+              <label class="form-label fw-bold">Email</label>
+              <input type="email" class="form-control" name="email">
+            </div>
+            <div class="col-md-6 org-only d-none">
+              <label class="form-label fw-bold">Organization Email</label>
+              <input type="email" class="form-control" name="organization_email">
+            </div>
+            <div class="col-md-6 applicant-only">
+              <label class="form-label fw-bold">Phone</label>
+              <input type="tel" class="form-control" name="phone_number">
+            </div>
+            <div class="col-md-6 org-only d-none">
+              <label class="form-label fw-bold">Organization Phone</label>
+              <input type="tel" class="form-control" name="organization_phone">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Password</label>
+              <input type="password" class="form-control" name="password1">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Confirm Password</label>
+              <input type="password" class="form-control" name="password2">
             </div>
           </div>
-        </form>
+          <div class="d-grid mt-4">
+            <button type="button" class="n btn-outline-light mt-3 w-100" id="signupNextBtn">Next</button>
+          </div>
+        </div>
+
+        <div id="signupStep2" class="px-3 py-2 d-none">
+          <div class="row g-4">
+            <div class="col-md-6 applicant-only">
+              <label class="form-label fw-bold">Age</label>
+              <input type="number" class="form-control" name="age" min="1">
+            </div>
+            <div class="col-md-6 applicant-only">
+              <label class="form-label fw-bold">Country</label>
+              <input type="text" class="form-control" name="country">
+            </div>
+            <div class="col-md-6 applicant-only">
+              <label class="form-label fw-bold">Address</label>
+              <input type="text" class="form-control" name="address">
+            </div>
+            <div class="col-md-6 applicant-only">
+              <label class="form-label fw-bold">Education</label>
+              <input type="text" class="form-control" name="education">
+            </div>
+            <div class="col-md-6 applicant-only">
+              <label class="form-label fw-bold">CV</label>
+              <input type="file" class="form-control" name="cv">
+            </div>
+            <div class="col-md-6 applicant-only">
+              <label class="form-label fw-bold">Availability</label>
+              <select class="form-control" name="availability">
+                <option value="part-time">Part-time</option>
+                <option value="volunteer">Volunteer</option>
+                <option value="full-time">Full-time</option>
+              </select>
+            </div>
+            <div class="col-md-6 applicant-only">
+              <label class="form-label fw-bold">Preferred Location</label>
+              <input type="text" class="form-control" name="preferred_location">
+            </div>
+            <div class="col-md-6 applicant-only">
+              <label class="form-label fw-bold">Job Type Interested</label>
+              <select class="form-control" name="job_type_interest">
+                <option value="full-time">Full-time</option>
+                <option value="part-time">Part-time</option>
+                <option value="volunteer">Volunteer</option>
+              </select>
+            </div>
+            <div class="col-md-6 applicant-only">
+              <label class="form-label fw-bold">Skills</label>
+              <input type="text" class="form-control" name="skills">
+            </div>
+            <div class="col-md-6 applicant-only">
+              <label class="form-label fw-bold">Location of Interest</label>
+              <input type="text" class="form-control" name="location_of_interest">
+            </div>
+            <div class="col-md-6 org-only d-none">
+              <label class="form-label fw-bold">Establishment Date</label>
+              <input type="date" class="form-control" name="establishment_date">
+            </div>
+            <div class="col-md-6 org-only d-none">
+              <label class="form-label fw-bold">Location</label>
+              <input type="text" class="form-control" name="location">
+            </div>
+            <div class="col-md-6 org-only d-none">
+              <label class="form-label fw-bold">Achievements</label>
+              <input type="text" class="form-control" name="achievements">
+            </div>
+            <div class="col-md-6 org-only d-none">
+              <label class="form-label fw-bold">Sector</label>
+              <select class="form-control" name="sector">
+                <option value="IT">IT</option>
+                <option value="NGO">NGO</option>
+                <option value="Aviation">Aviation</option>
+                <option value="Business">Business</option>
+                <option value="Healthcare">Healthcare</option>
+                <option value="Education">Education</option>
+                <option value="Finance">Finance</option>
+                <option value="Retail">Retail</option>
+                <option value="Hospitality">Hospitality</option>
+                <option value="Construction">Construction</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="col-md-6 org-only d-none">
+              <label class="form-label fw-bold">Company Type</label>
+              <select class="form-control" name="company_type">
+                <option value="Small">Small</option>
+                <option value="Medium">Medium</option>
+                <option value="Large">Large</option>
+              </select>
+            </div>
+            {% for q in security_questions %}
+              <div class="col-md-6">
+                <label class="form-label fw-bold">{{ q.question_text }}</label>
+                <select class="form-control" name="question{{ forloop.counter }}_subquestion" required>
+                  <option value="{{ q.option1 }}">{{ q.option1 }}</option>
+                  <option value="{{ q.option2 }}">{{ q.option2 }}</option>
+                  <option value="{{ q.option3 }}">{{ q.option3 }}</option>
+                </select>
+                <input type="text" class="form-control mt-2" name="answer{{ forloop.counter }}" required placeholder="Answer">
+              </div>
+            {% endfor %}
+          </div>
+          <div class="d-grid mt-4">
+            <button type="submit" class="n btn-outline-light mt-3 w-100">Register</button>
+          </div>
+          <div class="d-grid mt-2">
+            <button type="button" class="n btn-outline-light mt-3 w-100" id="signupBackBtn">Back</button>
+          </div>
+        </div>
       </div>
-    </div>
+    </form>
   </div>
+</div>

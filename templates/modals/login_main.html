@@ -1,0 +1,51 @@
+{% load static %}
+
+<div class="login-box">
+    <div class="text-center mb-4">
+      <img src="{% static 'img/logo.png' %}" alt="EventWork Connect Logo" width="90" />
+      <h2 class="mt-2">Welcome to EventWork</h2>
+    </div>
+    <form method="POST" id="loginForm" action="{% url 'login' %}">
+      {% csrf_token %}
+      <label for="id_number" class="form-label">Passport/License ID</label>
+      <input
+        type="text"
+        id="id_number"
+        name="id_number"
+        class="form-control"
+        required
+        placeholder="Enter your ID"
+      >
+      <label for="password" class="form-label">Password</label>
+      <input
+        type="password"
+        id="password"
+        name="password"
+        class="form-control"
+        required
+        placeholder="Enter password"
+      >
+      <button type="submit" class="n btn-outline-light mt-3 w-100">Login</button>
+    </form>
+    <button
+      type="button"
+      class="n btn-outline-light mt-3 w-100"
+      data-bs-toggle="modal"
+      data-bs-target="#signupModal"
+    >
+      Sign Up
+    </button>
+    <button
+      type="button"
+      class="n btn-outline-light mt-3 w-100"
+      data-bs-toggle="modal"
+      data-bs-target="#forgotModal"
+    >
+      Forgot Password?
+    </button>
+    <div class="text-danger mt-2 fw-semibold" id="loginError"></div>
+  </div>
+
+  <footer class="login-footer">
+    <p>&copy; 2025 EventWork Connect</p>
+  </footer>

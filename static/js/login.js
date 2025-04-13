@@ -1,224 +1,200 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const applicantIcon = document.getElementById("applicantIcon");
-  const organizationIcon = document.getElementById("organizationIcon");
-  const applicantFields = document.querySelectorAll(".applicant-only");
-  const orgFields = document.querySelectorAll(".org-only");
-  const userTypeInput = document.getElementById("user_type");
+document.addEventListener("DOMContentLoaded", function() {
+  var applicantIcon = document.getElementById("applicantIcon");
+  var organizationIcon = document.getElementById("organizationIcon");
+  var userTypeInput = document.getElementById("user_type");
+  var applicantOnly = document.querySelectorAll(".applicant-only");
+  var orgOnly = document.querySelectorAll(".org-only");
+  var step1 = document.getElementById("signupStep1");
+  var step2 = document.getElementById("signupStep2");
+  var signupNextBtn = document.getElementById("signupNextBtn");
+  var signupBackBtn = document.getElementById("signupBackBtn");
 
-  const step1 = document.getElementById("signupStep1");
-  const step2 = document.getElementById("signupStep2");
-  const nextBtn = document.getElementById("signupNextBtn");
-  const signupForm = document.getElementById("signupForm");
+  // Switch to applicant view
+  if (applicantIcon) {
+    applicantIcon.onclick = function() {
+      userTypeInput.value = "applicant";
+      applicantIcon.classList.add("active-type");
+      organizationIcon.classList.remove("active-type");
+      applicantOnly.forEach(function(el) { el.classList.remove("d-none"); });
+      orgOnly.forEach(function(el) { el.classList.add("d-none"); });
+    };
+  }
 
-  const backBtn = document.getElementById("signupBackBtn");
+  // Switch to organization view
+  if (organizationIcon) {
+    organizationIcon.onclick = function() {
+      userTypeInput.value = "organization";
+      organizationIcon.classList.add("active-type");
+      applicantIcon.classList.remove("active-type");
+      orgOnly.forEach(function(el) { el.classList.remove("d-none"); });
+      applicantOnly.forEach(function(el) { el.classList.add("d-none"); });
+    };
+  }
 
-  
-  backBtn?.addEventListener("click", () => {
-  // Show Step 1 again
-  step2.classList.add("d-none");
-  step1.classList.remove("d-none");
+  // Move to Step 2 (and show relevant fields)
+  if (signupNextBtn) {
+    signupNextBtn.onclick = function() {
+      step1.classList.add("d-none");
+      step2.classList.remove("d-none");
 
-  // Re-enable user type switch
-  applicantIcon.classList.remove("disabled", "pe-none", "opacity-50");
-  organizationIcon.classList.remove("disabled", "pe-none", "opacity-50");
-
-  // Hide Back button
-  backBtn.classList.add("d-none");
-});
-
-  // Set default to applicant
-  userTypeInput.value = "job_seeker";
-  applicantFields.forEach(f => f.classList.remove("d-none"));
-  orgFields.forEach(f => f.classList.add("d-none"));
-
-  applicantIcon?.addEventListener("click", () => {
-    userTypeInput.value = "job_seeker";
-    applicantIcon.classList.add("active-type");
-    organizationIcon.classList.remove("active-type");
-    applicantFields.forEach(f => f.classList.remove("d-none"));
-    orgFields.forEach(f => f.classList.add("d-none"));
-  });
-
-  organizationIcon?.addEventListener("click", () => {
-    userTypeInput.value = "job_poster";
-    organizationIcon.classList.add("active-type");
-    applicantIcon.classList.remove("active-type");
-    orgFields.forEach(f => f.classList.remove("d-none"));
-    applicantFields.forEach(f => f.classList.add("d-none"));
-  });
-
-  nextBtn?.addEventListener("click", () => {
-    const pw1 = step1.querySelector("input[name='password1']");
-    const pw2 = step1.querySelector("input[name='password2']");
-  
-    if (pw1.value !== pw2.value) {
-      alert("Passwords do not match.");
-      return;
-    }
-  
-    if (pw1.value.length < 8) {
-      alert("Password must be at least 8 characters.");
-      return;
-    }
-  
-    // Hide step 1, show step 2
-    step1.classList.add("d-none");
-    step2.classList.remove("d-none");
-  
-    // Lock the user type selection
-    applicantIcon.classList.add("disabled", "pe-none", "opacity-50");
-    organizationIcon.classList.add("disabled", "pe-none", "opacity-50");
-  
-    // Show relevant fields
-    if (userTypeInput.value === "job_seeker") {
-      applicantFields.forEach(f => f.classList.remove("d-none"));
-      orgFields.forEach(f => f.classList.add("d-none"));
-    } else {
-      orgFields.forEach(f => f.classList.remove("d-none"));
-      applicantFields.forEach(f => f.classList.add("d-none"));
-    }
-  
-    // Show Back button
-    document.getElementById("signupBackBtn").classList.remove("d-none");
-  });
-  
-
-  // Load security question dropdowns
-  const loadSecurityQuestions = () => {
-    fetch("/account/security-questions/")
-      .then(res => res.json())
-      .then(data => {
-        const q1 = document.querySelector("select[name='question1_subquestion']");
-        const q2 = document.querySelector("select[name='question2_subquestion']");
-        const q3 = document.querySelector("select[name='question3_subquestion']");
-  
-        q1.innerHTML = "";
-        q2.innerHTML = "";
-        q3.innerHTML = "";
-  
-        // Expected order: index 0 => Question 1, 1 => Question 2, 2 => Question 3
-        if (data.length >= 3) {
-          const [qData1, qData2, qData3] = data;
-  
-          [qData1.option1, qData1.option2, qData1.option3].forEach(opt => {
-            const el = document.createElement("option");
-            el.value = opt;
-            el.textContent = opt;
-            q1.appendChild(el);
-          });
-  
-          [qData2.option1, qData2.option2, qData2.option3].forEach(opt => {
-            const el = document.createElement("option");
-            el.value = opt;
-            el.textContent = opt;
-            q2.appendChild(el);
-          });
-  
-          [qData3.option1, qData3.option2, qData3.option3].forEach(opt => {
-            const el = document.createElement("option");
-            el.value = opt;
-            el.textContent = opt;
-            q3.appendChild(el);
-          });
-        }
-      });
-  };
-  
-
-  loadSecurityQuestions();
-
-  // Submit signup form
-  signupForm?.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const formData = new FormData(signupForm);
-
-    fetch("/account/register/", {
-      method: "POST",
-      headers: {
-        "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value
-      },
-      body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        alert("Registration successful!");
-        location.href = "/dashboard/";
+      if (userTypeInput.value === "applicant") {
+        applicantOnly.forEach(function(el) { el.classList.remove("d-none"); });
       } else {
-        alert("Registration failed: " + JSON.stringify(data.errors || data.message));
+        orgOnly.forEach(function(el) { el.classList.remove("d-none"); });
       }
-    })
-    .catch(() => {
-      alert("Something went wrong. Please try again.");
-    });
-  });
+    };
+  }
+
+  // Move back to Step 1
+  if (signupBackBtn) {
+    signupBackBtn.onclick = function() {
+      step2.classList.add("d-none");
+      step1.classList.remove("d-none");
+
+      if (userTypeInput.value === "applicant") {
+        orgOnly.forEach(function(el) { el.classList.add("d-none"); });
+      } else {
+        applicantOnly.forEach(function(el) { el.classList.add("d-none"); });
+      }
+    };
+  }
 
   // Forgot password logic
-  const verifyBtn = document.getElementById("verifyBtn");
-  const forgotIdInput = document.getElementById("forgotId");
-  const forgotError = document.getElementById("forgotError");
-  const securityBox = document.getElementById("securityQuestions");
-  const newPwBox = document.getElementById("newPwFields");
+  var forgotId = document.getElementById("forgotId");
+  var forgotUserType = document.getElementById("forgotUserType");
+  var securityQuestions = document.getElementById("securityQuestions");
+  var newPwFields = document.getElementById("newPwFields");
+  var forgotError = document.getElementById("forgotError");
+  var verifyBtn = document.getElementById("verifyBtn");
+  var answeredQuestions = false;
 
-  verifyBtn?.addEventListener("click", () => {
-    const passportId = forgotIdInput.value.trim();
-    fetch(`/account/forgot-password/?id=${passportId}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          securityBox.innerHTML = "";
-          data.questions.forEach(q => {
-            const input = document.createElement("input");
-            input.className = "form-control my-2";
-            input.placeholder = q;
-            input.setAttribute("data-question", q);
-            input.required = true;
-            securityBox.appendChild(input);
-          });
+  if (verifyBtn) {
+    verifyBtn.onclick = function() {
+      // First click => fetch + display questions
+      if (!answeredQuestions) {
+        securityQuestions.innerHTML = "";
+        securityQuestions.classList.add("d-none");
+        newPwFields.classList.add("d-none");
+        forgotError.textContent = "";
 
-          securityBox.classList.remove("d-none");
-          newPwBox.classList.remove("d-none");
+        var idVal = forgotId.value.trim();
+        var uType = forgotUserType.value;
 
-          verifyBtn.textContent = "Reset Password";
-          verifyBtn.onclick = () => {
-            const answers = Array.from(securityBox.querySelectorAll("input")).map(input => ({
-              question: input.dataset.question,
-              answer: input.value
-            }));
+        if (!idVal) {
+          forgotError.textContent = "Please enter an ID.";
+          return;
+        }
 
-            const newPassword = document.getElementById("newPw").value;
-            const confirmPassword = document.getElementById("confirmPw").value;
-
-            if (newPassword !== confirmPassword || newPassword.length < 8) {
-              forgotError.textContent = "Passwords don't match or are too short.";
+        fetch("{% url 'security_questions' %}?id_number=" + encodeURIComponent(idVal))
+          .then(function(r) { return r.json(); })
+          .then(function(qData) {
+            if (!qData.length) {
+              forgotError.textContent = "User not found or no security questions.";
               return;
             }
+            answeredQuestions = true;
+            securityQuestions.classList.remove("d-none");
 
-            fetch("/account/reset-password/", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value
-              },
-              body: JSON.stringify({ id: passportId, answers, newPassword })
-            })
-            .then(res => res.json())
-            .then(r => {
-              if (r.success) {
-                alert("Password updated! Please login.");
-                location.reload();
-              } else {
-                forgotError.textContent = r.message || "Security answers incorrect.";
-              }
+            var html = "";
+            qData.forEach(function(obj) {
+              html += `
+                <label class="form-label fw-bold">${obj.question_text}</label>
+                <input
+                  type="text"
+                  class="form-control mb-3 sqAnswer"
+                  data-q="${obj.question_text}"
+                >
+              `;
             });
-          };
-        } else {
-          forgotError.textContent = "Passport ID not found.";
-        }
-      })
-      .catch(() => {
-        forgotError.textContent = "Something went wrong.";
-      });
-  });
-});
+            securityQuestions.innerHTML = html;
+          })
+          .catch(function() {
+            forgotError.textContent = "Error fetching questions.";
+          });
+      }
+      // Second click => verify answers
+      else {
+        var ansEls = document.querySelectorAll(".sqAnswer");
+        var answers = [];
+        ansEls.forEach(function(el) {
+          answers.push({ question: el.dataset.q, answer: el.value.trim() });
+        });
 
+        var idVal = forgotId.value.trim();
+        var uType = forgotUserType.value;
+
+        if (!answers.length) {
+          forgotError.textContent = "No answers entered.";
+          return;
+        }
+
+        fetch("{% url 'forgot_password_check' %}", {
+          method: "POST",
+          headers: {
+            "X-CSRFToken": "{{ csrf_token }}",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            id_number: idVal,
+            user_type: uType,
+            answers: answers
+          })
+        })
+          .then(function(r) { return r.json(); })
+          .then(function(d) {
+            if (d.valid) {
+              // Show password update fields
+              securityQuestions.classList.add("d-none");
+              newPwFields.classList.remove("d-none");
+              verifyBtn.textContent = "Update Password";
+
+              verifyBtn.onclick = function() {
+                var pw1 = document.getElementById("newPw").value.trim();
+                var pw2 = document.getElementById("confirmPw").value.trim();
+
+                if (!pw1 || !pw2) {
+                  forgotError.textContent = "Enter both new password fields.";
+                  return;
+                }
+                if (pw1 !== pw2) {
+                  forgotError.textContent = "Passwords do not match.";
+                  return;
+                }
+
+                fetch("{% url 'reset_password' %}", {
+                  method: "POST",
+                  headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                    "Content-Type": "application/json"
+                  },
+                  body: JSON.stringify({
+                    id: idVal,
+                    newPassword: pw1,
+                    user_type: uType,
+                    answers: answers
+                  })
+                })
+                  .then(function(rr) { return rr.json(); })
+                  .then(function(res) {
+                    if (res.success) {
+                      alert("Password updated successfully!");
+                      window.location.reload();
+                    } else {
+                      forgotError.textContent = res.message || "Error resetting password.";
+                    }
+                  })
+                  .catch(function() {
+                    forgotError.textContent = "Server error. Please try again.";
+                  });
+              };
+            } else {
+              forgotError.textContent = "Answers did not match. Try again.";
+            }
+          })
+          .catch(function() {
+            forgotError.textContent = "Server error. Try again.";
+          });
+      }
+    };
+  }
+});

@@ -3,7 +3,7 @@ from django.contrib.auth.base_user import BaseUserManager
 class ApplicantManager(BaseUserManager):
     def create_user(self, id_number, full_name, email, password=None, **extra_fields):
         if not id_number or not email:
-            raise ValueError("Passport ID and email are required.")
+            raise ValueError("ID Number and email are required.")
         email = self.normalize_email(email)
         applicant = self.model(
             id_number=id_number,
@@ -19,14 +19,13 @@ class ApplicantManager(BaseUserManager):
         extra_fields.setdefault('is_superuser', True)
         return self.create_user(id_number, full_name, email, password, **extra_fields)
 
-
 class OrganizationManager(BaseUserManager):
-    def create_user(self, id_number, full_name, email, password=None, **extra_fields):
-        if not id_number or not email:
-            raise ValueError("Passport ID and email are required.")
+    def create_user(self, license_number, full_name, email, password=None, **extra_fields):
+        if not license_number or not email:
+            raise ValueError("License number and email are required.")
         email = self.normalize_email(email)
         organization = self.model(
-            id_number=id_number,
+            license_number=license_number,
             full_name=full_name,
             email=email,
             **extra_fields
@@ -35,6 +34,6 @@ class OrganizationManager(BaseUserManager):
         organization.save(using=self._db)
         return organization
 
-    def create_superuser(self, id_number, full_name, email, password=None, **extra_fields):
+    def create_superuser(self, license_number, full_name, email, password=None, **extra_fields):
         extra_fields.setdefault('is_superuser', True)
-        return self.create_user(id_number, full_name, email, password, **extra_fields)
+        return self.create_user(license_number, full_name, email, password, **extra_fields)
