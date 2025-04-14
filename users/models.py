@@ -18,11 +18,6 @@ class Applicant(AbstractBaseUser, PermissionsMixin):
     preferred_location = models.CharField(max_length=100)
     skills = models.TextField(blank=True)
     location_of_interest = models.CharField(max_length=100, blank=True)
-    account_status = models.CharField(
-        max_length=8,
-        choices=[('active','Active'),('inactive','Inactive')],
-        default='active'
-    )
     availability = models.CharField(
         max_length=20,
         choices=[('part-time','Part-time'),('volunteer','Volunteer'),('full-time','Full-time')]
@@ -49,6 +44,9 @@ class Applicant(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return f"Applicant: {self.full_name}"
+    
+    class Meta:
+        db_table = 'users_applicant'
 
 class Organization(AbstractBaseUser, PermissionsMixin):
     license_number = models.CharField(max_length=100, unique=True)
@@ -74,11 +72,6 @@ class Organization(AbstractBaseUser, PermissionsMixin):
         max_length=20,
         choices=[('Small','Small'),('Medium','Medium'),('Large','Large')]
     )
-    account_status = models.CharField(
-        max_length=8,
-        choices=[('active','Active'),('inactive','Inactive')],
-        default='active'
-    )
     groups = models.ManyToManyField(
         'auth.Group',
         related_name='organization_set',
@@ -97,6 +90,9 @@ class Organization(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return f"Organization: {self.organization_name}"
+    
+    class Meta:
+        db_table = 'users_organization'
 
 class SecurityQuestion(models.Model):
     question_text = models.CharField(max_length=255)

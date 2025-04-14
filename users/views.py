@@ -5,16 +5,12 @@ from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.views.decorators.http import require_GET
-
-from .forms import (
-    LoginForm,
-    ApplicantRegisterForm,
-    OrganizationRegisterForm
-)
-from .models import (
-    Applicant, Organization, SecurityQuestion,
-    ApplicantSecurityAnswer, OrganizationSecurityAnswer
-)
+from .forms import LoginForm, ApplicantRegisterForm, OrganizationRegisterForm
+from .models import Applicant, Organization, SecurityQuestion, ApplicantSecurityAnswer, OrganizationSecurityAnswer
+from django.contrib.auth.decorators import login_required
+from backend.models import JobPosting
+from .forms import LoginForm
+from django.contrib.auth import logout
 
 def home_redirect_view(request):
     return redirect('login')
@@ -39,7 +35,7 @@ def login_view(request):
                 except Organization.DoesNotExist:
                     messages.error(request, 'No user with that ID was found.')
                     return render(request, 'login.html', context)
-            if not user.is_active or user.account_status != 'active':
+            if not user.is_active:
                 messages.error(request, 'Your account is not active.')
                 return render(request, 'login.html', context)
             if isinstance(user, Applicant):
@@ -49,12 +45,13 @@ def login_view(request):
             user_auth = authenticate(request, username=username_for_auth, password=password)
             if user_auth:
                 login(request, user_auth)
-                return redirect('dashboard')
+                return redirect('base')
             messages.error(request, 'Invalid credentials.')
     return render(request, 'login.html', context)
 
-def dashboard_view(request):
-    return render(request, 'dashboard.html')
+@login_required
+def base_redirect_view(request):
+    return render(request, 'base.html')
 
 @csrf_exempt
 def register_view(request):
@@ -67,11 +64,12 @@ def register_view(request):
             form = OrganizationRegisterForm(request.POST)
             AnswerModel = OrganizationSecurityAnswer
         else:
+            print("Invalid user type:", user_type)
             return JsonResponse({'success': False, 'message': 'Invalid user type'})
+
         if form.is_valid():
             user = form.save(commit=False)
             user.is_active = True
-            user.account_status = 'active'
             user.save()
             answers = [
                 (form.cleaned_data['question1_subquestion'], form.cleaned_data['answer1']),
@@ -97,8 +95,12 @@ def register_view(request):
                             answer=ans
                         )
             login(request, user)
-            return JsonResponse({'success': True})
-        return JsonResponse({'success': False, 'errors': form.errors})
+            return redirect('login')
+        print("Form validation failed:")
+        for field, errors in form.errors.items():
+            print(f" - {field}: {errors}")
+        return JsonResponse({'success': False})
+    print(f"Invalid method used: {request.method}")
     return JsonResponse({'error': 'Invalid method'}, status=400)
 
 @csrf_exempt
@@ -133,7 +135,6 @@ def get_security_questions_choices(request):
             "options": [q.option1, q.option2, q.option3]
         })
     return JsonResponse(data, safe=False)
-
 
 @csrf_exempt
 def public_verify_security_answers(request):
@@ -212,3 +213,110 @@ def reset_password(request):
         return JsonResponse({'success': False, 'message': 'Invalid user type'})
     return JsonResponse({'success': False, 'message': 'Invalid request'}, status=400)
 
+def check_uniqueness(request):
+    id_code = request.GET.get("id_code")
+    email = request.GET.get("email")
+    user_type = request.GET.get("user_type")
+    
+    response = {}
+    if user_type == "applicant":
+        if id_code:
+            response["id_code_exists"] = Applicant.objects.filter(id_number=id_code).exists()
+        if email:
+            response["email_exists"] = Applicant.objects.filter(email=email).exists()
+    elif user_type == "organization":
+        if id_code:
+            response["id_code_exists"] = Organization.objects.filter(license_number=id_code).exists()
+        if email:
+            response["email_exists"] = Organization.objects.filter(organization_email=email).exists()
+    return JsonResponse(response)
+
+@require_GET
+def validate_unique(request):
+    user_type = request.GET.get('type')
+    field = request.GET.get('field')
+    value = request.GET.get('value', "").strip()
+    if not value:
+        return JsonResponse({"valid": False, "message": "No value provided."})
+    if user_type == "applicant":
+        model = Applicant
+    elif user_type == "organization":
+        model = Organization
+    else:
+        return JsonResponse({"valid": False, "message": "Invalid user type."})
+    if field == "email":
+        exists = model.objects.filter(email__iexact=value).exists()
+        label = "Email"
+    elif field == "id":
+        exists = model.objects.filter(id_number=value).exists()
+        label = "ID number"
+    else:
+        return JsonResponse({"valid": False, "message": "Invalid field."})
+    if exists:
+        return JsonResponse({"valid": False, "message": f"{label} already exists."})
+    else:
+        return JsonResponse({"valid": True, "message": f"{label} is available."})
+
+
+@login_required
+def applicant_dashboard(request):
+    if not hasattr(request.user, 'id_number'):
+        return redirect('org_dashboard')
+
+    query = request.GET.get('q', '')
+    job_type = request.GET.get('job_type', '')
+    jobs = JobPosting.objects.filter(is_active=True)
+    if query:
+        jobs = jobs.filter(title__icontains=query)
+    if job_type:
+        jobs = jobs.filter(job_type=job_type)
+
+    return render(request, 'dashboards/applicant_dashboard.html', {
+        'jobs': jobs,
+        'search_query': query,
+        'selected_job_type': job_type
+    })
+
+@login_required
+def organization_dashboard(request):
+    if not hasattr(request.user, 'license_number'):
+        return redirect('applicant_dashboard')
+
+    jobs = JobPosting.objects.filter(org=request.user, is_active=True)
+    return render(request, 'dashboards/organization_dashboard.html', {'jobs': jobs})
+
+@login_required
+def post_new_job(request):
+    # Only organization users should access this view
+    if hasattr(request.user, 'user_type') and request.user.user_type != 'organization':
+        return redirect('applicant_dashboard')
+    if request.method == 'POST':
+        # Process the form submission for a new job
+        title = request.POST.get('title')
+        job_type = request.POST.get('job_type')
+        location = request.POST.get('location')
+        deadline = request.POST.get('deadline')
+        # ... (validate inputs as needed)
+        # Create new Job associated with this organization user
+        Job.objects.create(
+            title=title, job_type=job_type, location=location, deadline=deadline,
+            owner=request.user, is_active=True
+        )
+        # Redirect back to organization dashboard (view postings)
+        return redirect('org_dashboard')
+    else:
+        # Render a form for creating a new job
+        return render(request, 'post_new_job.html', {})
+    
+
+@login_required
+def profile_view(request):
+    return render(request, 'profile.html')
+
+@login_required
+def chat_view(request):
+    return render(request, 'chat.html')
+
+def logout_view(request):
+    logout(request)
+    return redirect('login')

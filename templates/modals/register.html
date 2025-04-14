@@ -6,7 +6,7 @@
       {% csrf_token %}
       <div class="modal-body">
         <input type="hidden" name="user_type" id="user_type" value="applicant">
-        <div class="d-flex justify-content-center gap-5 mb-4">
+        <div id="userTypeIcons" class="d-flex justify-content-center gap-5 mb-4">
           <div id="applicantIcon" class="type-toggle active-type" role="button">
             <img src="{% static 'img/applicant-icon.png' %}" width="48" alt="Applicant">
             <div class="fw-semibold mt-1 text-center">Applicant</div>
@@ -15,7 +15,7 @@
             <img src="{% static 'img/organization-icon.png' %}" width="48" alt="Organization">
             <div class="fw-semibold mt-1 text-center">Organization</div>
           </div>
-        </div>
+        </div>        
 
         <div id="signupStep1" class="px-3 py-2">
           <div class="row g-4">
@@ -84,7 +84,7 @@
               <input type="text" class="form-control" name="education">
             </div>
             <div class="col-md-6 applicant-only">
-              <label class="form-label fw-bold">CV</label>
+              <label class="form-label fw-bold">CV (optional)</label>
               <input type="file" class="form-control" name="cv">
             </div>
             <div class="col-md-6 applicant-only">
@@ -154,12 +154,12 @@
             {% for q in security_questions %}
               <div class="col-md-6">
                 <label class="form-label fw-bold">{{ q.question_text }}</label>
-                <select class="form-control" name="question{{ forloop.counter }}_subquestion" required>
+                <select class="form-control" name="question{{ forloop.counter }}_subquestion" {% if forloop.counter < 3 %}required{% endif %}>
                   <option value="{{ q.option1 }}">{{ q.option1 }}</option>
                   <option value="{{ q.option2 }}">{{ q.option2 }}</option>
                   <option value="{{ q.option3 }}">{{ q.option3 }}</option>
                 </select>
-                <input type="text" class="form-control mt-2" name="answer{{ forloop.counter }}" required placeholder="Answer">
+                <input type="text" class="form-control mt-2" name="answer{{ forloop.counter }}" {% if forloop.counter < 3 %}required{% endif %} placeholder="Answer{% if forloop.counter == 3 %} (optional){% endif %}">
               </div>
             {% endfor %}
           </div>

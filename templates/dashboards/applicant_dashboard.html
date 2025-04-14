@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+  <h2>Find Opportunities</h2>
+  <div class="search-bar">
+    <form method="get" action="">
+      <input type="text" name="q" placeholder="Search jobs..." value="{{ search_query|default:'' }}">
+      <select name="job_type">
+        <option value="">All Types</option>
+        <option value="full-time" {% if selected_job_type == "full-time" %}selected{% endif %}>Full-time</option>
+        <option value="part-time" {% if selected_job_type == "part-time" %}selected{% endif %}>Part-time</option>
+        <option value="volunteer" {% if selected_job_type == "volunteer" %}selected{% endif %}>Volunteer</option>
+      </select>
+      <button type="submit">Search</button>
+    </form>
+  </div>
+
+  <div class="job-list">
+    {% for job in jobs %}
+      <div class="job-card">
+        <h3>{{ job.title }}</h3>
+        <p>
+          <strong>Type:</strong> {{ job.job_type }} &middot;
+          <strong>Location:</strong> {{ job.location }} &middot;
+          <strong>Deadline:</strong> {{ job.deadline }}
+        </p>
+        <a href="{% url 'apply_job' job.id %}" class="apply-btn">Apply</a>
+      </div>
+    {% empty %}
+      <p>No jobs found.</p>
+    {% endfor %}
+  </div>
+<style>
+.search-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.job-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.job-card {
+  background-color: var(--white);
+  border: 1px solid var(--btn-main);
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 0 2px 10px rgba(76, 114, 115, 0.1);
+}
+
+.apply-btn {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 0.4rem 0.8rem;
+  background-color: var(--btn-main);
+  color: var(--white);
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.apply-btn:hover {
+  background-color: var(--btn-hover);
+}
+
+</style>
+
+{% endblock %}

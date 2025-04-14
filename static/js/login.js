@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", function() {
+  // DOM elements
   var applicantIcon = document.getElementById("applicantIcon");
   var organizationIcon = document.getElementById("organizationIcon");
   var userTypeInput = document.getElementById("user_type");
@@ -8,8 +9,165 @@ document.addEventListener("DOMContentLoaded", function() {
   var step2 = document.getElementById("signupStep2");
   var signupNextBtn = document.getElementById("signupNextBtn");
   var signupBackBtn = document.getElementById("signupBackBtn");
+  var signupForm = document.getElementById("signupForm");
+  var password1 = document.querySelector('input[name="password1"]');
+  var password2 = document.querySelector('input[name="password2"]');
+  var ageInput = document.querySelector('input[name="age"]');
+  var availabilitySelect = document.querySelector('select[name="availability"]');
+  var jobTypeSelect = document.querySelector('select[name="job_type_interest"]');
+  var passwordError = document.createElement("div");
+  var ageError = document.createElement("div");
 
-  // Switch to applicant view
+  // Email and ID code validation elements
+  var applicantEmailInput = document.querySelector('.applicant-only input[name="email"]');
+  var orgEmailInput = document.querySelector('.org-only input[name="organization_email"]');
+  var applicantIdInput = document.querySelector('.applicant-only input[name="id_number"]');
+  var orgIdInput = document.querySelector('.org-only input[name="license_number"]');
+  var applicantEmailError = document.querySelector('.applicant-only .email-error');
+  var orgEmailError = document.querySelector('.org-only .email-error');
+  var applicantIdError = document.querySelector('.applicant-only .id-code-error');
+  var orgIdError = document.querySelector('.org-only .id-code-error');
+
+  // Setup error message elements
+  passwordError.className = "text-danger mt-1";
+  password2.parentElement.appendChild(passwordError);
+
+  ageError.className = "text-danger mt-1";
+  jobTypeSelect.parentElement.appendChild(ageError);
+
+  // Password validation
+  function validatePasswords() {
+    if (password1.value && password2.value) {
+      if (password1.value !== password2.value) {
+        passwordError.textContent = "Passwords do not match.";
+        signupNextBtn.disabled = true;
+      } else {
+        passwordError.textContent = "";
+        signupNextBtn.disabled = false;
+      }
+    } else {
+      passwordError.textContent = "";
+      signupNextBtn.disabled = false;
+    }
+  }
+
+  password1.addEventListener("input", validatePasswords);
+  password2.addEventListener("input", validatePasswords);
+
+  // Age validation
+  function validateAge() {
+    var age = parseInt(ageInput.value, 10) || 0;
+    var availability = availabilitySelect.value;
+    var jobType = jobTypeSelect.value;
+    var submitButton = signupForm.querySelector('button[type="submit"]');
+
+    if (age > 100) {
+      ageError.textContent = "Age cannot exceed 100.";
+      submitButton.disabled = true;
+    } else if (jobType === "full-time" || availability === "full-time") {
+      if (age < 14) {
+        ageError.textContent = "You must be at least 14 to register for a full-time job.";
+        submitButton.disabled = true;
+      } else if (age < 18) {
+        ageError.textContent = "You must be at least 18 to register for a full-time job.";
+        submitButton.disabled = true;
+      } else {
+        ageError.textContent = "";
+        submitButton.disabled = false;
+      }
+    } else {
+      ageError.textContent = "";
+      submitButton.disabled = false;
+    }
+  }
+
+  // Get current inputs based on user type
+  function getCurrentInputs() {
+    var userType = userTypeInput.value;
+    if (userType === 'applicant') {
+      return {
+        emailInput: applicantEmailInput,
+        idInput: applicantIdInput,
+        emailError: applicantEmailError,
+        idError: applicantIdError
+      };
+    } else {
+      return {
+        emailInput: orgEmailInput,
+        idInput: orgIdInput,
+        emailError: orgEmailError,
+        idError: orgIdError
+      };
+    }
+  }
+
+  // Check email uniqueness
+  function checkEmail() {
+    var inputs = getCurrentInputs();
+    var email = inputs.emailInput.value.trim();
+    var userType = userTypeInput.value; // Ensure this is accessible in your scope
+    if (email) {
+        fetch('/check_uniqueness/?email=' + encodeURIComponent(email) + '&user_type=' + userType)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Server error');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.email_exists) {
+                    inputs.emailError.textContent = 'This email is already taken.';
+                } else {
+                    inputs.emailError.textContent = '';
+                }
+            })
+            .catch(() => {
+                inputs.emailError.textContent = 'Error checking email.';
+            });
+    } else {
+        inputs.emailError.textContent = '';
+    }
+  }
+
+  // Check ID code uniqueness
+  function checkIdCode() {
+    var inputs = getCurrentInputs();
+    var idCode = inputs.idInput.value.trim();
+    var userType = userTypeInput.value; // Ensure this is accessible in your scope
+    if (idCode) {
+        fetch('/check_uniqueness/?id_code=' + encodeURIComponent(idCode) + '&user_type=' + userType)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Server error');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.id_code_exists) {
+                    inputs.idError.textContent = 'This ID code is already taken.';
+                } else {
+                    inputs.idError.textContent = '';
+                }
+            })
+            .catch(() => {
+                inputs.idError.textContent = 'Error checking ID code.';
+            });
+    } else {
+        inputs.idError.textContent = '';
+    }
+  }
+
+  // Event listeners for email and ID validation
+  applicantEmailInput.addEventListener('blur', checkEmail);
+  orgEmailInput.addEventListener('blur', checkEmail);
+  applicantIdInput.addEventListener('blur', checkIdCode);
+  orgIdInput.addEventListener('blur', checkIdCode);
+
+  ageInput.addEventListener("input", validateAge);
+  availabilitySelect.addEventListener("change", validateAge);
+  jobTypeSelect.addEventListener("change", validateAge);
+
+  // Applicant icon click
   if (applicantIcon) {
     applicantIcon.onclick = function() {
       userTypeInput.value = "applicant";
@@ -17,10 +175,15 @@ document.addEventListener("DOMContentLoaded", function() {
       organizationIcon.classList.remove("active-type");
       applicantOnly.forEach(function(el) { el.classList.remove("d-none"); });
       orgOnly.forEach(function(el) { el.classList.add("d-none"); });
+      // Clear error messages
+      applicantEmailError.textContent = '';
+      applicantIdError.textContent = '';
+      orgEmailError.textContent = '';
+      orgIdError.textContent = '';
     };
   }
 
-  // Switch to organization view
+  // Organization icon click
   if (organizationIcon) {
     organizationIcon.onclick = function() {
       userTypeInput.value = "organization";
@@ -28,19 +191,52 @@ document.addEventListener("DOMContentLoaded", function() {
       applicantIcon.classList.remove("active-type");
       orgOnly.forEach(function(el) { el.classList.remove("d-none"); });
       applicantOnly.forEach(function(el) { el.classList.add("d-none"); });
+      // Clear error messages
+      applicantEmailError.textContent = '';
+      applicantIdError.textContent = '';
+      orgEmailError.textContent = '';
+      orgIdError.textContent = '';
     };
   }
 
-  // Move to Step 2 (and show relevant fields)
+  // Validate Step 1 before moving to Step 2
+  function validateStep1() {
+    var inputs = getCurrentInputs();
+    var email = inputs.emailInput.value.trim();
+    var idCode = inputs.idInput.value.trim();
+    var password1Val = password1.value.trim();
+    var password2Val = password2.value.trim();
+
+    if (!email || !idCode || !password1Val || !password2Val) {
+      alert('Please fill all required fields in step 1.');
+      return false;
+    }
+
+    if (password1Val !== password2Val) {
+      passwordError.textContent = "Passwords do not match.";
+      return false;
+    }
+
+    if (inputs.emailError.textContent || inputs.idError.textContent) {
+      alert('Please correct the errors before proceeding.');
+      return false;
+    }
+
+    return true;
+  }
+
+  // Move to Step 2
   if (signupNextBtn) {
     signupNextBtn.onclick = function() {
-      step1.classList.add("d-none");
-      step2.classList.remove("d-none");
-
-      if (userTypeInput.value === "applicant") {
-        applicantOnly.forEach(function(el) { el.classList.remove("d-none"); });
-      } else {
-        orgOnly.forEach(function(el) { el.classList.remove("d-none"); });
+      if (validateStep1()) {
+        step1.classList.add("d-none");
+        step2.classList.remove("d-none");
+        if (userTypeInput.value === "applicant") {
+          applicantOnly.forEach(function(el) { el.classList.remove("d-none"); });
+        } else {
+          orgOnly.forEach(function(el) { el.classList.remove("d-none"); });
+        }
+        document.getElementById("userTypeIcons").classList.add("d-none");
       }
     };
   }
@@ -50,7 +246,7 @@ document.addEventListener("DOMContentLoaded", function() {
     signupBackBtn.onclick = function() {
       step2.classList.add("d-none");
       step1.classList.remove("d-none");
-
+      document.getElementById("userTypeIcons").classList.remove("d-none");
       if (userTypeInput.value === "applicant") {
         orgOnly.forEach(function(el) { el.classList.add("d-none"); });
       } else {
@@ -64,13 +260,12 @@ document.addEventListener("DOMContentLoaded", function() {
   var forgotUserType = document.getElementById("forgotUserType");
   var securityQuestions = document.getElementById("securityQuestions");
   var newPwFields = document.getElementById("newPwFields");
-  var forgotError = document.getElementById("forgotError");
+  var forgotError = document.getElementById(" forgotError");
   var verifyBtn = document.getElementById("verifyBtn");
   var answeredQuestions = false;
 
   if (verifyBtn) {
     verifyBtn.onclick = function() {
-      // First click => fetch + display questions
       if (!answeredQuestions) {
         securityQuestions.innerHTML = "";
         securityQuestions.classList.add("d-none");
@@ -111,9 +306,7 @@ document.addEventListener("DOMContentLoaded", function() {
           .catch(function() {
             forgotError.textContent = "Error fetching questions.";
           });
-      }
-      // Second click => verify answers
-      else {
+      } else {
         var ansEls = document.querySelectorAll(".sqAnswer");
         var answers = [];
         ansEls.forEach(function(el) {
@@ -143,7 +336,6 @@ document.addEventListener("DOMContentLoaded", function() {
           .then(function(r) { return r.json(); })
           .then(function(d) {
             if (d.valid) {
-              // Show password update fields
               securityQuestions.classList.add("d-none");
               newPwFields.classList.remove("d-none");
               verifyBtn.textContent = "Update Password";

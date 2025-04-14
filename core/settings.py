@@ -23,6 +23,11 @@ INSTALLED_APPS = [
     'backend',
 ]
 
+AUTHENTICATION_BACKENDS = [
+    'users.backends.ApplicantOrOrgBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
@@ -66,6 +71,9 @@ DATABASES = {
         'PORT': os.getenv('POSTGRES_PORT', '5432'),
     }
 }
+
+LOGIN_REDIRECT_URL = '/dashboard/redirect/'
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {

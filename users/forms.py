@@ -3,24 +3,22 @@ from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError
 from .models import Applicant, Organization, SecurityQuestion
 
-class LoginForm(forms.Form):
-    id_number = forms.CharField(label="Passport/License ID", max_length=100)
-    password = forms.CharField(widget=forms.PasswordInput)
-
 class ApplicantRegisterForm(UserCreationForm):
+
     question1_subquestion = forms.ChoiceField(label="Select Question 1", required=True)
     answer1 = forms.CharField(label="Answer 1", required=True)
     question2_subquestion = forms.ChoiceField(label="Select Question 2", required=True)
     answer2 = forms.CharField(label="Answer 2", required=True)
     question3_subquestion = forms.ChoiceField(label="Select Question 3 (optional)", required=False)
     answer3 = forms.CharField(label="Answer 3 (optional)", required=False)
+    cv = forms.FileField(required=False, label="Upload CV (optional)")
 
     class Meta:
         model = Applicant
         fields = [
-            'id_number','full_name','email','phone_number','age','country','address',
-            'education','cv','availability','preferred_location','job_type_interest',
-            'skills','location_of_interest','password1','password2'
+            'id_number', 'full_name', 'email', 'phone_number', 'age', 'country', 'address',
+            'education', 'cv', 'availability', 'preferred_location', 'job_type_interest',
+            'skills', 'location_of_interest', 'password1', 'password2'
         ]
 
     def __init__(self, *args, **kwargs):
@@ -46,13 +44,14 @@ class ApplicantRegisterForm(UserCreationForm):
 
     def clean_age(self):
         age_val = self.cleaned_data.get('age')
-        availability_val = self.cleaned_data.get('availability','').strip()
-        if availability_val == 'full-time' and age_val < 18:
-            raise ValidationError("You must be at least 18 for a full-time position.")
-        if availability_val != 'full-time' and age_val < 14:
-            raise ValidationError("You must be at least 14 for part-time or volunteer.")
+        job_type_interest = self.cleaned_data.get('job_type_interest', '').strip()
         if age_val > 100:
             raise ValidationError("Age cannot exceed 100.")
+        if job_type_interest == 'full-time':
+            if age_val < 14:
+                raise ValidationError("You must be at least 14 to register for a full-time job.")
+            if age_val < 18:
+                raise ValidationError("You must be at least 18 to register for a full-time job.")
         return age_val
 
     def clean(self):
@@ -77,9 +76,9 @@ class OrganizationRegisterForm(UserCreationForm):
     class Meta:
         model = Organization
         fields = [
-            'license_number','organization_name','organization_email','organization_phone',
-            'establishment_date','location','achievements','sector','company_type',
-            'password1','password2'
+            'license_number', 'organization_name', 'organization_email', 'organization_phone',
+            'establishment_date', 'location', 'achievements', 'sector', 'company_type',
+            'password1', 'password2'
         ]
 
     def __init__(self, *args, **kwargs):
@@ -113,3 +112,7 @@ class OrganizationRegisterForm(UserCreationForm):
         if sum(bool(a) for a in answers) < 2:
             raise forms.ValidationError("Please answer at least two security questions.")
         return cleaned
+
+class LoginForm(forms.Form):
+    id_number = forms.CharField(label="Passport/License ID", max_length=100)
+    password = forms.CharField(widget=forms.PasswordInput)

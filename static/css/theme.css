@@ -1,0 +1,167 @@
+/* theme.css: CSS variables and styles for EventWork Connect */
+:root {
+    --bg-main: #d0d6d6;
+    --bg-secondary: #86b9b0;
+    --btn-main: #4c7273;
+    --btn-hover: #365c5c;
+    --text-main: #041421;
+    --text-subtle: #042630;
+    --white: #ffffff;
+  }
+  
+  /* Overall page style */
+  body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    font-family: Arial, sans-serif;
+    margin: 0;
+  }
+  
+  /* Header and navigation */
+  header {
+    background-color: var(--bg-secondary);
+    padding: 10px;
+  }
+  header .nav-right {
+    float: right;
+  }
+  header .nav-right a {
+    color: var(--white);
+    text-decoration: none;
+    margin-left: 20px;
+    font-weight: bold;
+  }
+  header .nav-right a:hover {
+    text-decoration: underline;
+  }
+  
+  /* Footer style */
+  footer {
+    background-color: var(--bg-secondary);
+    color: var(--white);
+    text-align: center;
+    padding: 8px;
+    margin-top: 20px;
+  }
+  
+  /* Search bar and job list (Applicant Dashboard) */
+  .search-bar {
+    background-color: var(--bg-secondary);
+    padding: 10px;
+    margin-bottom: 15px;
+  }
+  .search-bar input, .search-bar select {
+    padding: 5px;
+    margin-right: 5px;
+  }
+  .search-bar button {
+    background-color: var(--btn-main);
+    color: var(--white);
+    border: none;
+    padding: 6px 12px;
+    cursor: pointer;
+  }
+  .search-bar button:hover {
+    background-color: var(--btn-hover);
+  }
+  
+  /* Job posting cards (Applicant Dashboard) */
+  .job-card {
+    background-color: var(--white);
+    border: 1px solid var(--bg-secondary);
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+  .job-card h3 {
+    margin: 0 0 5px 0;
+  }
+  .job-card p {
+    color: var(--text-subtle);
+    margin: 5px 0;
+  }
+  .apply-btn {
+    background-color: var(--btn-main);
+    color: var(--white);
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+  }
+  .apply-btn:hover {
+    background-color: var(--btn-hover);
+  }
+  
+  /* Organization Dashboard styles */
+  .org-actions {
+    margin: 10px 0;
+  }
+  .org-actions a {
+    background-color: var(--btn-main);
+    color: var(--white);
+    text-decoration: none;
+    padding: 8px 15px;
+    margin-right: 10px;
+    border-radius: 4px;
+  }
+  .org-actions a:hover {
+    background-color: var(--btn-hover);
+  }
+  
+  /* Jobs table (Organization Dashboard) */
+  .jobs-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+  .jobs-table th, .jobs-table td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #ccc;
+  }
+  .jobs-table th {
+    background-color: var(--bg-secondary);
+    color: var(--white);
+  }
+  .jobs-table tr:nth-child(even) {
+    background-color: #efefef;
+  }
+  /* Action links in the table */
+  .jobs-table a {
+    color: var(--text-main);
+    text-decoration: none;
+    margin-right: 5px;
+  }
+  .jobs-table a:hover {
+    text-decoration: underline;
+  }
+  /* Delete button styled as link */
+  .link-btn {
+    background: none;
+    border: none;
+    color: var(--text-main);
+    cursor: pointer;
+    padding: 0;
+    font: inherit;
+  }
+  .link-btn:hover {
+    text-decoration: underline;
+  }
+  /* New Job form adjustments */
+  form label {
+    font-weight: bold;
+  }
+  form input, form select {
+    margin-top: 4px;
+    margin-bottom: 12px;
+    padding: 5px;
+    width: 50%;
+  }
+  .cancel-link {
+    margin-left: 10px;
+    text-decoration: none;
+    color: var(--text-subtle);
+  }
+  .cancel-link:hover {
+    text-decoration: underline;
+  }
+  
