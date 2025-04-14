@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function() {
-  // DOM elements
+  // DOM elements (unchanged from your code)
   var applicantIcon = document.getElementById("applicantIcon");
   var organizationIcon = document.getElementById("organizationIcon");
   var userTypeInput = document.getElementById("user_type");
@@ -28,14 +28,14 @@ document.addEventListener("DOMContentLoaded", function() {
   var applicantIdError = document.querySelector('.applicant-only .id-code-error');
   var orgIdError = document.querySelector('.org-only .id-code-error');
 
-  // Setup error message elements
+  // Setup error message elements (unchanged)
   passwordError.className = "text-danger mt-1";
   password2.parentElement.appendChild(passwordError);
 
   ageError.className = "text-danger mt-1";
   jobTypeSelect.parentElement.appendChild(ageError);
 
-  // Password validation
+  // Password and age validation functions (unchanged)
   function validatePasswords() {
     if (password1.value && password2.value) {
       if (password1.value !== password2.value) {
@@ -51,10 +51,6 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   }
 
-  password1.addEventListener("input", validatePasswords);
-  password2.addEventListener("input", validatePasswords);
-
-  // Age validation
   function validateAge() {
     var age = parseInt(ageInput.value, 10) || 0;
     var availability = availabilitySelect.value;
@@ -81,7 +77,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   }
 
-  // Get current inputs based on user type
+  // Get current inputs based on user type (unchanged)
   function getCurrentInputs() {
     var userType = userTypeInput.value;
     if (userType === 'applicant') {
@@ -105,69 +101,71 @@ document.addEventListener("DOMContentLoaded", function() {
   function checkEmail() {
     var inputs = getCurrentInputs();
     var email = inputs.emailInput.value.trim();
-    var userType = userTypeInput.value; // Ensure this is accessible in your scope
+    var userType = userTypeInput.value;
     if (email) {
-        fetch('/check_uniqueness/?email=' + encodeURIComponent(email) + '&user_type=' + userType)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Server error');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.email_exists) {
-                    inputs.emailError.textContent = 'This email is already taken.';
-                } else {
-                    inputs.emailError.textContent = '';
-                }
-            })
-            .catch(() => {
-                inputs.emailError.textContent = 'Error checking email.';
-            });
+      fetch('/account/check_uniqueness/?email=' + encodeURIComponent(email) + '&user_type=' + userType)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Server error');
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.email_exists) {
+            inputs.emailError.textContent = 'This email is already taken.';
+          } else {
+            inputs.emailError.textContent = '';
+          }
+        })
+        .catch(() => {
+          inputs.emailError.textContent = 'Error checking email.';
+        });
     } else {
-        inputs.emailError.textContent = '';
+      inputs.emailError.textContent = '';
     }
   }
 
-  // Check ID code uniqueness
   function checkIdCode() {
     var inputs = getCurrentInputs();
     var idCode = inputs.idInput.value.trim();
-    var userType = userTypeInput.value; // Ensure this is accessible in your scope
+    var userType = userTypeInput.value;
     if (idCode) {
-        fetch('/check_uniqueness/?id_code=' + encodeURIComponent(idCode) + '&user_type=' + userType)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Server error');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.id_code_exists) {
-                    inputs.idError.textContent = 'This ID code is already taken.';
-                } else {
-                    inputs.idError.textContent = '';
-                }
-            })
-            .catch(() => {
-                inputs.idError.textContent = 'Error checking ID code.';
-            });
+      fetch('/account/check_uniqueness/?id_code=' + encodeURIComponent(idCode) + '&user_type=' + userType)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Server error');
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.id_code_exists) {
+            inputs.idError.textContent = 'This ID code is already taken.';
+          } else {
+            inputs.idError.textContent = '';
+          }
+        })
+        .catch(() => {
+          inputs.idError.textContent = 'Error checking ID code.';
+        });
     } else {
-        inputs.idError.textContent = '';
+      inputs.idError.textContent = '';
     }
   }
+  
 
-  // Event listeners for email and ID validation
+  // Event listeners (unchanged)
   applicantEmailInput.addEventListener('blur', checkEmail);
   orgEmailInput.addEventListener('blur', checkEmail);
   applicantIdInput.addEventListener('blur', checkIdCode);
   orgIdInput.addEventListener('blur', checkIdCode);
 
+  password1.addEventListener("input", validatePasswords);
+  password2.addEventListener("input", validatePasswords);
   ageInput.addEventListener("input", validateAge);
   availabilitySelect.addEventListener("change", validateAge);
   jobTypeSelect.addEventListener("change", validateAge);
 
-  // Applicant icon click
+  // Applicant and Organization icon click handlers (unchanged)
   if (applicantIcon) {
     applicantIcon.onclick = function() {
       userTypeInput.value = "applicant";
@@ -175,7 +173,6 @@ document.addEventListener("DOMContentLoaded", function() {
       organizationIcon.classList.remove("active-type");
       applicantOnly.forEach(function(el) { el.classList.remove("d-none"); });
       orgOnly.forEach(function(el) { el.classList.add("d-none"); });
-      // Clear error messages
       applicantEmailError.textContent = '';
       applicantIdError.textContent = '';
       orgEmailError.textContent = '';
@@ -183,7 +180,6 @@ document.addEventListener("DOMContentLoaded", function() {
     };
   }
 
-  // Organization icon click
   if (organizationIcon) {
     organizationIcon.onclick = function() {
       userTypeInput.value = "organization";
@@ -191,7 +187,6 @@ document.addEventListener("DOMContentLoaded", function() {
       applicantIcon.classList.remove("active-type");
       orgOnly.forEach(function(el) { el.classList.remove("d-none"); });
       applicantOnly.forEach(function(el) { el.classList.add("d-none"); });
-      // Clear error messages
       applicantEmailError.textContent = '';
       applicantIdError.textContent = '';
       orgEmailError.textContent = '';
@@ -199,7 +194,7 @@ document.addEventListener("DOMContentLoaded", function() {
     };
   }
 
-  // Validate Step 1 before moving to Step 2
+  // Step 1 validation and navigation (unchanged)
   function validateStep1() {
     var inputs = getCurrentInputs();
     var email = inputs.emailInput.value.trim();
@@ -225,7 +220,6 @@ document.addEventListener("DOMContentLoaded", function() {
     return true;
   }
 
-  // Move to Step 2
   if (signupNextBtn) {
     signupNextBtn.onclick = function() {
       if (validateStep1()) {
@@ -241,7 +235,6 @@ document.addEventListener("DOMContentLoaded", function() {
     };
   }
 
-  // Move back to Step 1
   if (signupBackBtn) {
     signupBackBtn.onclick = function() {
       step2.classList.add("d-none");
@@ -255,12 +248,12 @@ document.addEventListener("DOMContentLoaded", function() {
     };
   }
 
-  // Forgot password logic
+  // Forgot password logic (unchanged, included for completeness)
   var forgotId = document.getElementById("forgotId");
   var forgotUserType = document.getElementById("forgotUserType");
   var securityQuestions = document.getElementById("securityQuestions");
   var newPwFields = document.getElementById("newPwFields");
-  var forgotError = document.getElementById(" forgotError");
+  var forgotError = document.getElementById("forgotError");
   var verifyBtn = document.getElementById("verifyBtn");
   var answeredQuestions = false;
 

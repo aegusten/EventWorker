@@ -57,7 +57,7 @@ class Feedback(models.Model):
     applicant = models.ForeignKey(Applicant, on_delete=models.CASCADE)
     job = models.ForeignKey(JobPosting, on_delete=models.CASCADE)
     comment = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True) #Fk job post id
 
     def __str__(self):
         return f"Feedback for {self.job.title} by {self.applicant.id_number}"

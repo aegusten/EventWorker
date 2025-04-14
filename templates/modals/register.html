@@ -20,45 +20,79 @@
         <div id="signupStep1" class="px-3 py-2">
           <div class="row g-4">
             <div class="col-md-6 applicant-only">
-              <label class="form-label fw-bold">ID Number</label>
+              <label class="form-label fw-bold">
+                Passport ID
+              </label>
               <input type="text" class="form-control" name="id_number">
+              <div class="id-code-error text-danger mt-1"></div>
             </div>
+
             <div class="col-md-6 org-only d-none">
-              <label class="form-label fw-bold">License Number</label>
+              <label class="form-label fw-bold">
+                License Number
+              </label>
               <input type="text" class="form-control" name="license_number">
+              <div class="id-code-error text-danger mt-1"></div>
             </div>
+
             <div class="col-md-6 applicant-only">
-              <label class="form-label fw-bold">Full Name</label>
+              <label class="form-label fw-bold">
+                Full Name
+              </label>
               <input type="text" class="form-control" name="full_name">
             </div>
+
             <div class="col-md-6 org-only d-none">
-              <label class="form-label fw-bold">Organization Name</label>
+              <label class="form-label fw-bold">
+                Organization Name
+              </label>
               <input type="text" class="form-control" name="organization_name">
             </div>
+
             <div class="col-md-6 applicant-only">
-              <label class="form-label fw-bold">Email</label>
+              <label class="form-label fw-bold">
+                Email
+              </label>
               <input type="email" class="form-control" name="email">
+              <div class="email-error text-danger mt-1"></div>
             </div>
+
             <div class="col-md-6 org-only d-none">
-              <label class="form-label fw-bold">Organization Email</label>
+              <label class="form-label fw-bold">
+                Organization Email
+              </label>
               <input type="email" class="form-control" name="organization_email">
+              <div class="email-error text-danger mt-1"></div>
             </div>
+
             <div class="col-md-6 applicant-only">
-              <label class="form-label fw-bold">Phone</label>
+              <label class="form-label fw-bold">
+                Phone
+              </label>
               <input type="tel" class="form-control" name="phone_number">
             </div>
+
             <div class="col-md-6 org-only d-none">
-              <label class="form-label fw-bold">Organization Phone</label>
+              <label class="form-label fw-bold">
+                Organization Phone
+              </label>
               <input type="tel" class="form-control" name="organization_phone">
             </div>
+
             <div class="col-md-6">
-              <label class="form-label fw-bold">Password</label>
+              <label class="form-label fw-bold">
+                Password
+              </label>
               <input type="password" class="form-control" name="password1">
             </div>
+
             <div class="col-md-6">
-              <label class="form-label fw-bold">Confirm Password</label>
+              <label class="form-label fw-bold">
+                Confirm Password
+              </label>
               <input type="password" class="form-control" name="password2">
             </div>
+
           </div>
           <div class="d-grid mt-4">
             <button type="button" class="n btn-outline-light mt-3 w-100" id="signupNextBtn">Next</button>
