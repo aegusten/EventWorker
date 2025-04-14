@@ -65,10 +65,10 @@ def register_view(request):
             AnswerModel = OrganizationSecurityAnswer
         else:
             return JsonResponse({'success': False, 'message': 'Invalid user type'})
-
         if form.is_valid():
             user = form.save(commit=False)
-            user.set_password(form.cleaned_data['password']) 
+            user.pk = None
+            user.set_password(form.cleaned_data['password1'])
             user.is_active = True
             user.save()
             answers = [
@@ -94,7 +94,7 @@ def register_view(request):
                             question_text=q_text,
                             answer=ans
                         )
-            login(request, user)
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             return redirect('login')
         else:
             return JsonResponse({'success': False, 'errors': form.errors})
@@ -234,9 +234,6 @@ def check_uniqueness(request):
     if response:
         return JsonResponse(response)
     return JsonResponse({"error": "Invalid request"}, status=400)
-
-
-
 
 @login_required
 def applicant_dashboard(request):
