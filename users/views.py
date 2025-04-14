@@ -64,11 +64,11 @@ def register_view(request):
             form = OrganizationRegisterForm(request.POST)
             AnswerModel = OrganizationSecurityAnswer
         else:
-            print("Invalid user type:", user_type)
             return JsonResponse({'success': False, 'message': 'Invalid user type'})
 
         if form.is_valid():
             user = form.save(commit=False)
+            user.set_password(form.cleaned_data['password']) 
             user.is_active = True
             user.save()
             answers = [
@@ -96,11 +96,8 @@ def register_view(request):
                         )
             login(request, user)
             return redirect('login')
-        print("Form validation failed:")
-        for field, errors in form.errors.items():
-            print(f" - {field}: {errors}")
-        return JsonResponse({'success': False})
-    print(f"Invalid method used: {request.method}")
+        else:
+            return JsonResponse({'success': False, 'errors': form.errors})
     return JsonResponse({'error': 'Invalid method'}, status=400)
 
 @csrf_exempt
@@ -217,45 +214,28 @@ def check_uniqueness(request):
     id_code = request.GET.get("id_code")
     email = request.GET.get("email")
     user_type = request.GET.get("user_type")
-    
     response = {}
     if user_type == "applicant":
         if id_code:
-            response["id_code_exists"] = Applicant.objects.filter(id_number=id_code).exists()
+            exists = (Applicant.objects.filter(id_number=id_code).exists() or Organization.objects.filter(license_number=id_code).exists())
+            response["id_code_exists"] = exists
         if email:
-            response["email_exists"] = Applicant.objects.filter(email=email).exists()
+            exists = (Applicant.objects.filter(email=email).exists() or Organization.objects.filter(organization_email=email).exists())
+            response["email_exists"] = exists
     elif user_type == "organization":
         if id_code:
-            response["id_code_exists"] = Organization.objects.filter(license_number=id_code).exists()
+            exists = (Organization.objects.filter(license_number=id_code).exists() or Applicant.objects.filter(id_number=id_code).exists())
+            response["id_code_exists"] = exists
         if email:
-            response["email_exists"] = Organization.objects.filter(organization_email=email).exists()
-    return JsonResponse(response)
+            exists = (Organization.objects.filter(organization_email=email).exists() or Applicant.objects.filter(email=email).exists())
+            response["email_exists"] = exists
+    else:
+        return JsonResponse({"error": "Invalid user type"}, status=400)
+    if response:
+        return JsonResponse(response)
+    return JsonResponse({"error": "Invalid request"}, status=400)
 
-@require_GET
-def validate_unique(request):
-    user_type = request.GET.get('type')
-    field = request.GET.get('field')
-    value = request.GET.get('value', "").strip()
-    if not value:
-        return JsonResponse({"valid": False, "message": "No value provided."})
-    if user_type == "applicant":
-        model = Applicant
-    elif user_type == "organization":
-        model = Organization
-    else:
-        return JsonResponse({"valid": False, "message": "Invalid user type."})
-    if field == "email":
-        exists = model.objects.filter(email__iexact=value).exists()
-        label = "Email"
-    elif field == "id":
-        exists = model.objects.filter(id_number=value).exists()
-        label = "ID number"
-    else:
-        return JsonResponse({"valid": False, "message": "Invalid field."})
-    if exists:
-        return JsonResponse({"valid": False, "message": f"{label} already exists."})
-    else:
-        return JsonResponse({"valid": True, "message": f"{label} is available."})
+
 
 
 @login_required

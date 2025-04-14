@@ -12,7 +12,7 @@ urlpatterns = [
     path('account/', include('users.urls')),
     path('jobs/', include('backend.urls')),
     path('backend/', include('backend.urls')),
-
+    path('account/', include('users.urls')),
 ]
 
 urlpatterns += static(
