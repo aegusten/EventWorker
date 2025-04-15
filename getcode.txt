@@ -201,6 +201,38 @@ urlpatterns = [
 // File: backend/utils.py
 
 // File: backend/views.py
+from django.contrib.auth.backends import BaseBackend
+from users.models import Applicant, Organization
+from django.shortcuts import render, redirect
+from users.models import JobPosting
+from django.contrib.auth.decorators import login_required
+from .models import Job
+
+
+
+@login_required
+def post_new_job(request):
+    # Only organization users should access this view
+    if hasattr(request.user, 'user_type') and request.user.user_type != 'organization':
+        return redirect('applicant_dashboard')
+    if request.method == 'POST':
+        # Process the form submission for a new job
+        title = request.POST.get('title')
+        job_type = request.POST.get('job_type')
+        location = request.POST.get('location')
+        deadline = request.POST.get('deadline')
+        # ... (validate inputs as needed)
+        # Create new Job associated with this organization user
+        Job.objects.create(
+            title=title, job_type=job_type, location=location, deadline=deadline,
+            owner=request.user, is_active=True
+        )
+        # Redirect back to organization dashboard (view postings)
+        return redirect('org_dashboard')
+    else:
+        # Render a form for creating a new job
+        return render(request, 'post_new_job.html', {})
+    
 
 // File: core/__init__.py
 
@@ -212,6 +244,203 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
 
 application = get_asgi_application()
 
+// File: core/backends.py
+from django.contrib.auth.backends import BaseBackend
+from users.models import Applicant, Organization
+
+class ApplicantOrOrgBackend(BaseBackend):
+    def authenticate(self, request, username=None, password=None):
+        try:
+            user = Applicant.objects.get(id_number=username)
+        except Applicant.DoesNotExist:
+            try:
+                user = Organization.objects.get(license_number=username)
+            except Organization.DoesNotExist:
+                return None
+        if user.check_password(password):
+            return user
+        return None
+
+    def get_user(self, user_id):
+        from users.models import Applicant, Organization
+        try:
+            return Applicant.objects.get(pk=user_id)
+        except Applicant.DoesNotExist:
+            try:
+                return Organization.objects.get(pk=user_id)
+            except Organization.DoesNotExist:
+                return None
+
+// File: core/forms.py
+from django import forms
+from django.contrib.auth.forms import UserCreationForm
+from django.core.exceptions import ValidationError
+from users.models import Applicant, Organization, SecurityQuestion
+
+class ApplicantRegisterForm(UserCreationForm):
+
+    question1_subquestion = forms.ChoiceField(label="Select Question 1", required=True)
+    answer1 = forms.CharField(label="Answer 1", required=True)
+    question2_subquestion = forms.ChoiceField(label="Select Question 2", required=True)
+    answer2 = forms.CharField(label="Answer 2", required=True)
+    question3_subquestion = forms.ChoiceField(label="Select Question 3 (optional)", required=False)
+    answer3 = forms.CharField(label="Answer 3 (optional)", required=False)
+    cv = forms.FileField(required=False, label="Upload CV (optional)")
+
+    class Meta:
+        model = Applicant
+        fields = [
+            'id_number', 'full_name', 'email', 'phone_number', 'age', 'country', 'address',
+            'education', 'cv', 'availability', 'preferred_location', 'job_type_interest',
+            'skills', 'location_of_interest', 'password1', 'password2'
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        questions = list(SecurityQuestion.objects.all().order_by('id'))
+        if len(questions) >= 3:
+            q1, q2, q3 = questions[:3]
+            self.fields['question1_subquestion'].choices = [
+                (q1.option1, q1.option1),
+                (q1.option2, q1.option2),
+                (q1.option3, q1.option3)
+            ]
+            self.fields['question2_subquestion'].choices = [
+                (q2.option1, q2.option1),
+                (q2.option2, q2.option2),
+                (q2.option3, q2.option3)
+            ]
+            self.fields['question3_subquestion'].choices = [
+                (q3.option1, q3.option1),
+                (q3.option2, q3.option2),
+                (q3.option3, q3.option3)
+            ]
+
+    def clean_age(self):
+        age_val = self.cleaned_data.get('age')
+        job_type_interest = self.cleaned_data.get('job_type_interest', '').strip()
+        if age_val > 100:
+            raise ValidationError("Age cannot exceed 100.")
+        if job_type_interest == 'full-time':
+            if age_val < 14:
+                raise ValidationError("You must be at least 14 to register for a full-time job.")
+            if age_val < 18:
+                raise ValidationError("You must be at least 18 to register for a full-time job.")
+        return age_val
+
+    def clean(self):
+        cleaned = super().clean()
+        answers = [
+            cleaned.get('answer1','').strip(),
+            cleaned.get('answer2','').strip(),
+            cleaned.get('answer3','').strip()
+        ]
+        if sum(bool(a) for a in answers) < 2:
+            raise forms.ValidationError("Please answer at least two security questions.")
+        return cleaned
+
+class OrganizationRegisterForm(UserCreationForm):
+    question1_subquestion = forms.ChoiceField(label="Select Question 1", required=True)
+    answer1 = forms.CharField(label="Answer 1", required=True)
+    question2_subquestion = forms.ChoiceField(label="Select Question 2", required=True)
+    answer2 = forms.CharField(label="Answer 2", required=True)
+    question3_subquestion = forms.ChoiceField(label="Select Question 3 (optional)", required=False)
+    answer3 = forms.CharField(label="Answer 3 (optional)", required=False)
+
+    class Meta:
+        model = Organization
+        fields = [
+            'license_number', 'organization_name', 'organization_email', 'organization_phone',
+            'establishment_date', 'location', 'achievements', 'sector', 'company_type',
+            'password1', 'password2'
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        questions = list(SecurityQuestion.objects.all().order_by('id'))
+        if len(questions) >= 3:
+            q1, q2, q3 = questions[:3]
+            self.fields['question1_subquestion'].choices = [
+                (q1.option1, q1.option1),
+                (q1.option2, q1.option2),
+                (q1.option3, q1.option3)
+            ]
+            self.fields['question2_subquestion'].choices = [
+                (q2.option1, q2.option1),
+                (q2.option2, q2.option2),
+                (q2.option3, q2.option3)
+            ]
+            self.fields['question3_subquestion'].choices = [
+                (q3.option1, q3.option1),
+                (q3.option2, q3.option2),
+                (q3.option3, q3.option3)
+            ]
+
+    def clean(self):
+        cleaned = super().clean()
+        answers = [
+            cleaned.get('answer1','').strip(),
+            cleaned.get('answer2','').strip(),
+            cleaned.get('answer3','').strip()
+        ]
+        if sum(bool(a) for a in answers) < 2:
+            raise forms.ValidationError("Please answer at least two security questions.")
+        return cleaned
+
+class LoginForm(forms.Form):
+    id_number = forms.CharField(label="Passport/License ID", max_length=100)
+    password = forms.CharField(widget=forms.PasswordInput)
+// File: core/managers.py
+from django.contrib.auth.base_user import BaseUserManager
+from django.contrib.auth.views import LoginView
+from django.urls import reverse
+
+class ApplicantManager(BaseUserManager):
+    def create_user(self, id_number, full_name, email, password=None, **extra_fields):
+        if not id_number or not email:
+            raise ValueError("ID Number and email are required.")
+        email = self.normalize_email(email)
+        applicant = self.model(
+            id_number=id_number,
+            full_name=full_name,
+            email=email,
+            **extra_fields
+        )
+        applicant.set_password(password)
+        applicant.save(using=self._db)
+        return applicant
+
+    def create_superuser(self, id_number, full_name, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_superuser', True)
+        return self.create_user(id_number, full_name, email, password, **extra_fields)
+
+class OrganizationManager(BaseUserManager):
+    def create_user(self, license_number, full_name, email, password=None, **extra_fields):
+        if not license_number or not email:
+            raise ValueError("License number and email are required.")
+        email = self.normalize_email(email)
+        organization = self.model(
+            license_number=license_number,
+            full_name=full_name,
+            email=email,
+            **extra_fields
+        )
+        organization.set_password(password)
+        organization.save(using=self._db)
+        return organization
+
+    def create_superuser(self, license_number, full_name, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_superuser', True)
+        return self.create_user(license_number, full_name, email, password, **extra_fields)
+
+
+class RoleBasedLoginView(LoginView):
+    def get_success_url(self):
+        user = self.request.user
+        if hasattr(user, 'user_type') and user.user_type == 'organization':
+            return reverse('org_dashboard')
+        else:
+            return reverse('applicant_dashboard')
 // File: core/settings.py
 import os
 from pathlib import Path
@@ -236,10 +465,10 @@ INSTALLED_APPS = [
     'crispy_bootstrap5',
     'users',
     'backend',
+    'core',
 ]
 
 AUTHENTICATION_BACKENDS = [
-    'users.backends.ApplicantOrOrgBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
 
@@ -316,26 +545,289 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 // File: core/urls.py
-from django.urls import path, include
-from django.conf.urls.static import static
-from users.views import home_redirect_view
-
 from django.contrib import admin
+from django.urls import path, include
 from django.conf import settings
+from django.conf.urls.static import static
 
+from .views import (
+    home_redirect_view, 
+    login_view, 
+    register_view, 
+    base_redirect_view,
+    logout_view,
+    check_uniqueness,
+    applicant_dashboard,
+    
+)
 
 urlpatterns = [
-    path('', home_redirect_view),
+ 
+    path('', home_redirect_view, name='home'),
     path('admin/', admin.site.urls),
+    path('accounts/login/', login_view, name='login'),
+
+    path('register/', register_view, name='register'),
+    path('base/', base_redirect_view, name='base'),
+    path('logout/', logout_view, name='logout'),
+    path('account/check_uniqueness/', check_uniqueness, name='check_uniqueness'),
     path('account/', include('users.urls')),
+    path('dashboard/applicant/', applicant_dashboard, name='applicant_dashboard'),
     path('jobs/', include('backend.urls')),
-    path('backend/', include('backend.urls')),
-    path('account/', include('users.urls')),
 ]
 
-urlpatterns += static(
-    settings.STATIC_URL, document_root=settings.STATIC_ROOT
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+// File: core/views.py
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login, logout
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_GET
+from django.contrib.auth.decorators import login_required
+
+import json
+from .forms import LoginForm
+from django.contrib import messages
+from django.http import JsonResponse
+
+from backend.models import (
+    JobPosting
 )
+
+from .forms import (
+    LoginForm, 
+    ApplicantRegisterForm, 
+    OrganizationRegisterForm
+)
+
+from users.models import (
+    Applicant, 
+    Organization, 
+    SecurityQuestion, 
+    ApplicantSecurityAnswer, 
+    OrganizationSecurityAnswer
+)
+
+def home_redirect_view(request):
+    return redirect('login')
+
+def login_view(request):
+    form = LoginForm(request.POST if request.method == 'POST' else None)
+    security_questions = SecurityQuestion.objects.all().order_by('id')[:3]
+    context = {
+        'form': form,
+        'security_questions': security_questions,
+    }
+
+    if request.method == 'POST' and form.is_valid():
+        id_number = form.cleaned_data['id_number']
+        password = form.cleaned_data['password']
+        user = None
+        username_for_auth = None
+
+        try:
+            user = Applicant.objects.get(id_number=id_number)
+            username_for_auth = user.id_number
+        except Applicant.DoesNotExist:
+            try:
+                user = Organization.objects.get(license_number=id_number)
+                username_for_auth = user.license_number
+            except Organization.DoesNotExist:
+                messages.error(request, 'No user with that ID was found.')
+                return render(request, 'login.html', context)
+
+        if not user.is_active:
+            messages.error(request, 'Your account is not active.')
+            return render(request, 'login.html', context)
+
+        user_auth = authenticate(request, username=username_for_auth, password=password)
+
+        if user_auth:
+            login(request, user_auth)
+            if isinstance(user_auth, Applicant):
+                return redirect('applicant_dashboard')
+            elif isinstance(user_auth, Organization):
+                return redirect('organization_dashboard')
+        else:
+            messages.error(request, 'Invalid credentials.')
+
+    return render(request, 'login.html', context)
+
+
+@login_required
+def base_redirect_view(request):
+    return render(request, 'base')
+
+@login_required
+def organization_dashboard(request):
+    if not hasattr(request.user, 'license_number'):
+        return redirect('applicant_dashboard')
+
+    jobs = JobPosting.objects.filter(org=request.user, is_active=True)
+    return render(request, 'dashboards/organization_dashboard.html', {'jobs': jobs})
+
+@login_required
+def applicant_dashboard(request):
+    if not hasattr(request.user, 'id_number'):
+        return redirect('org_dashboard')
+
+    query = request.GET.get('q', '')
+    job_type = request.GET.get('job_type', '')
+    jobs = JobPosting.objects.filter(is_active=True)
+    if query:
+        jobs = jobs.filter(title__icontains=query)
+    if job_type:
+        jobs = jobs.filter(job_type=job_type)
+
+    return render(request, 'dashboards/applicant_dashboard.html', {
+        'jobs': jobs,
+        'search_query': query,
+        'selected_job_type': job_type
+    })
+
+@csrf_exempt
+def register_view(request):
+    if request.method == 'POST':
+        user_type = request.POST.get('user_type')
+        if user_type == 'applicant':
+            form = ApplicantRegisterForm(request.POST, request.FILES)
+            AnswerModel = ApplicantSecurityAnswer
+        elif user_type == 'organization':
+            form = OrganizationRegisterForm(request.POST)
+            AnswerModel = OrganizationSecurityAnswer
+        else:
+            return JsonResponse({'success': False, 'message': 'Invalid user type'})
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.pk = None
+            user.set_password(form.cleaned_data['password1'])
+            user.is_active = True
+            user.save()
+            answers = [
+                (form.cleaned_data['question1_subquestion'], form.cleaned_data['answer1']),
+                (form.cleaned_data['question2_subquestion'], form.cleaned_data['answer2']),
+                (form.cleaned_data['question3_subquestion'], form.cleaned_data['answer3'])
+            ]
+            questions = list(SecurityQuestion.objects.all().order_by('id'))
+            for idx, (q_text, ans) in enumerate(answers):
+                if ans.strip():
+                    question_obj = questions[idx]
+                    if user_type == 'applicant':
+                        AnswerModel.objects.create(
+                            applicant=user,
+                            question=question_obj,
+                            question_text=q_text,
+                            answer=ans
+                        )
+                    else:
+                        AnswerModel.objects.create(
+                            organization=user,
+                            question=question_obj,
+                            question_text=q_text,
+                            answer=ans
+                        )
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            return redirect('login')
+        else:
+            return JsonResponse({'success': False, 'errors': form.errors})
+    return JsonResponse({'error': 'Invalid method'}, status=400)
+
+@csrf_exempt
+def get_security_questions(request):
+    if request.method == 'GET':
+        id_number = request.GET.get('id_number', '').strip()
+        if not id_number:
+            return JsonResponse([], safe=False)
+        applicant = Applicant.objects.filter(id_number=id_number).first()
+        if applicant:
+            answers = applicant.security_answers.all()
+        else:
+            org = Organization.objects.filter(license_number=id_number).first()
+            if not org:
+                return JsonResponse([], safe=False)
+            answers = org.security_answers.all()
+        questions = []
+        for ans in answers:
+            questions.append({
+                "question_text": ans.question_text
+            })
+        return JsonResponse(questions, safe=False)
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+@require_GET
+def get_security_questions_choices(request):
+    qs = SecurityQuestion.objects.all().order_by('id')[:3]
+    data = []
+    for q in qs:
+        data.append({
+            "question_text": q.question_text,
+            "options": [q.option1, q.option2, q.option3]
+        })
+    return JsonResponse(data, safe=False)
+
+@csrf_exempt
+def public_verify_security_answers(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        id_number = data.get('id_number')
+        user_type = data.get('user_type')
+        answers = data.get('answers', [])
+        if user_type == 'applicant':
+            user = Applicant.objects.filter(id_number=id_number).first()
+            if not user:
+                return JsonResponse({'valid': False, 'error': 'User not found'}, status=404)
+            correct = 0
+            for ans in answers:
+                if user.security_answers.filter(
+                    question_text=ans['question'],
+                    answer__iexact=ans['answer']
+                ).exists():
+                    correct += 1
+            return JsonResponse({'valid': correct >= 2})
+        elif user_type == 'organization':
+            user = Organization.objects.filter(license_number=id_number).first()
+            if not user:
+                return JsonResponse({'valid': False, 'error': 'User not found'}, status=404)
+            correct = 0
+            for ans in answers:
+                if user.security_answers.filter(
+                    question_text=ans['question'],
+                    answer__iexact=ans['answer']
+                ).exists():
+                    correct += 1
+            return JsonResponse({'valid': correct >= 2})
+        return JsonResponse({'valid': False, 'error': 'Invalid user type'})
+    return JsonResponse({'valid': False, 'error': 'Invalid request'}, status=400)
+
+def check_uniqueness(request):
+    id_code = request.GET.get("id_code")
+    email = request.GET.get("email")
+    user_type = request.GET.get("user_type")
+    response = {}
+    if user_type == "applicant":
+        if id_code:
+            exists = (Applicant.objects.filter(id_number=id_code).exists() or Organization.objects.filter(license_number=id_code).exists())
+            response["id_code_exists"] = exists
+        if email:
+            exists = (Applicant.objects.filter(email=email).exists() or Organization.objects.filter(organization_email=email).exists())
+            response["email_exists"] = exists
+    elif user_type == "organization":
+        if id_code:
+            exists = (Organization.objects.filter(license_number=id_code).exists() or Applicant.objects.filter(id_number=id_code).exists())
+            response["id_code_exists"] = exists
+        if email:
+            exists = (Organization.objects.filter(organization_email=email).exists() or Applicant.objects.filter(email=email).exists())
+            response["email_exists"] = exists
+    else:
+        return JsonResponse({"error": "Invalid user type"}, status=400)
+    if response:
+        return JsonResponse(response)
+    return JsonResponse({"error": "Invalid request"}, status=400)
+
+def logout_view(request):
+    logout(request)
+    return redirect('login')
 // File: core/wsgi.py
 import os
 from django.core.wsgi import get_wsgi_application
@@ -1342,221 +1834,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
 {% endblock %}
 
-// File: urls.py
-from django.contrib import admin
-from django.urls import path, include
-from accounts.views import signup_view
-
-urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', signup_view, name='login'),  # default landing page
-    path('account/', include('accounts.urls')),
-]
-
 // File: users/__init__.py
 
 // File: users/admin.py
 
 // File: users/api/views.py
 
-// File: users/backends.py
-from django.contrib.auth.backends import BaseBackend
-from users.models import Applicant, Organization
-
-class ApplicantOrOrgBackend(BaseBackend):
-    def authenticate(self, request, username=None, password=None):
-        try:
-            user = Applicant.objects.get(id_number=username)
-        except Applicant.DoesNotExist:
-            try:
-                user = Organization.objects.get(license_number=username)
-            except Organization.DoesNotExist:
-                return None
-        if user.check_password(password):
-            return user
-        return None
-
-    def get_user(self, user_id):
-        from users.models import Applicant, Organization
-        try:
-            return Applicant.objects.get(pk=user_id)
-        except Applicant.DoesNotExist:
-            try:
-                return Organization.objects.get(pk=user_id)
-            except Organization.DoesNotExist:
-                return None
-
 // File: users/forms.py
-from django import forms
-from django.contrib.auth.forms import UserCreationForm
-from django.core.exceptions import ValidationError
-from .models import Applicant, Organization, SecurityQuestion
 
-class ApplicantRegisterForm(UserCreationForm):
-
-    question1_subquestion = forms.ChoiceField(label="Select Question 1", required=True)
-    answer1 = forms.CharField(label="Answer 1", required=True)
-    question2_subquestion = forms.ChoiceField(label="Select Question 2", required=True)
-    answer2 = forms.CharField(label="Answer 2", required=True)
-    question3_subquestion = forms.ChoiceField(label="Select Question 3 (optional)", required=False)
-    answer3 = forms.CharField(label="Answer 3 (optional)", required=False)
-    cv = forms.FileField(required=False, label="Upload CV (optional)")
-
-    class Meta:
-        model = Applicant
-        fields = [
-            'id_number', 'full_name', 'email', 'phone_number', 'age', 'country', 'address',
-            'education', 'cv', 'availability', 'preferred_location', 'job_type_interest',
-            'skills', 'location_of_interest', 'password1', 'password2'
-        ]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        questions = list(SecurityQuestion.objects.all().order_by('id'))
-        if len(questions) >= 3:
-            q1, q2, q3 = questions[:3]
-            self.fields['question1_subquestion'].choices = [
-                (q1.option1, q1.option1),
-                (q1.option2, q1.option2),
-                (q1.option3, q1.option3)
-            ]
-            self.fields['question2_subquestion'].choices = [
-                (q2.option1, q2.option1),
-                (q2.option2, q2.option2),
-                (q2.option3, q2.option3)
-            ]
-            self.fields['question3_subquestion'].choices = [
-                (q3.option1, q3.option1),
-                (q3.option2, q3.option2),
-                (q3.option3, q3.option3)
-            ]
-
-    def clean_age(self):
-        age_val = self.cleaned_data.get('age')
-        job_type_interest = self.cleaned_data.get('job_type_interest', '').strip()
-        if age_val > 100:
-            raise ValidationError("Age cannot exceed 100.")
-        if job_type_interest == 'full-time':
-            if age_val < 14:
-                raise ValidationError("You must be at least 14 to register for a full-time job.")
-            if age_val < 18:
-                raise ValidationError("You must be at least 18 to register for a full-time job.")
-        return age_val
-
-    def clean(self):
-        cleaned = super().clean()
-        answers = [
-            cleaned.get('answer1','').strip(),
-            cleaned.get('answer2','').strip(),
-            cleaned.get('answer3','').strip()
-        ]
-        if sum(bool(a) for a in answers) < 2:
-            raise forms.ValidationError("Please answer at least two security questions.")
-        return cleaned
-
-class OrganizationRegisterForm(UserCreationForm):
-    question1_subquestion = forms.ChoiceField(label="Select Question 1", required=True)
-    answer1 = forms.CharField(label="Answer 1", required=True)
-    question2_subquestion = forms.ChoiceField(label="Select Question 2", required=True)
-    answer2 = forms.CharField(label="Answer 2", required=True)
-    question3_subquestion = forms.ChoiceField(label="Select Question 3 (optional)", required=False)
-    answer3 = forms.CharField(label="Answer 3 (optional)", required=False)
-
-    class Meta:
-        model = Organization
-        fields = [
-            'license_number', 'organization_name', 'organization_email', 'organization_phone',
-            'establishment_date', 'location', 'achievements', 'sector', 'company_type',
-            'password1', 'password2'
-        ]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        questions = list(SecurityQuestion.objects.all().order_by('id'))
-        if len(questions) >= 3:
-            q1, q2, q3 = questions[:3]
-            self.fields['question1_subquestion'].choices = [
-                (q1.option1, q1.option1),
-                (q1.option2, q1.option2),
-                (q1.option3, q1.option3)
-            ]
-            self.fields['question2_subquestion'].choices = [
-                (q2.option1, q2.option1),
-                (q2.option2, q2.option2),
-                (q2.option3, q2.option3)
-            ]
-            self.fields['question3_subquestion'].choices = [
-                (q3.option1, q3.option1),
-                (q3.option2, q3.option2),
-                (q3.option3, q3.option3)
-            ]
-
-    def clean(self):
-        cleaned = super().clean()
-        answers = [
-            cleaned.get('answer1','').strip(),
-            cleaned.get('answer2','').strip(),
-            cleaned.get('answer3','').strip()
-        ]
-        if sum(bool(a) for a in answers) < 2:
-            raise forms.ValidationError("Please answer at least two security questions.")
-        return cleaned
-
-class LoginForm(forms.Form):
-    id_number = forms.CharField(label="Passport/License ID", max_length=100)
-    password = forms.CharField(widget=forms.PasswordInput)
 // File: users/managers.py
-from django.contrib.auth.base_user import BaseUserManager
-from django.contrib.auth.views import LoginView
-from django.urls import reverse
 
-class ApplicantManager(BaseUserManager):
-    def create_user(self, id_number, full_name, email, password=None, **extra_fields):
-        if not id_number or not email:
-            raise ValueError("ID Number and email are required.")
-        email = self.normalize_email(email)
-        applicant = self.model(
-            id_number=id_number,
-            full_name=full_name,
-            email=email,
-            **extra_fields
-        )
-        applicant.set_password(password)
-        applicant.save(using=self._db)
-        return applicant
-
-    def create_superuser(self, id_number, full_name, email, password=None, **extra_fields):
-        extra_fields.setdefault('is_superuser', True)
-        return self.create_user(id_number, full_name, email, password, **extra_fields)
-
-class OrganizationManager(BaseUserManager):
-    def create_user(self, license_number, full_name, email, password=None, **extra_fields):
-        if not license_number or not email:
-            raise ValueError("License number and email are required.")
-        email = self.normalize_email(email)
-        organization = self.model(
-            license_number=license_number,
-            full_name=full_name,
-            email=email,
-            **extra_fields
-        )
-        organization.set_password(password)
-        organization.save(using=self._db)
-        return organization
-
-    def create_superuser(self, license_number, full_name, email, password=None, **extra_fields):
-        extra_fields.setdefault('is_superuser', True)
-        return self.create_user(license_number, full_name, email, password, **extra_fields)
-
-
-class RoleBasedLoginView(LoginView):
-    def get_success_url(self):
-        user = self.request.user
-        # Redirect based on user type
-        if hasattr(user, 'user_type') and user.user_type == 'organization':
-            return reverse('org_dashboard')
-        else:
-            return reverse('applicant_dashboard')
 // File: users/migrations/0001_initial.py
 # Generated by Django 5.2 on 2025-04-13 12:36
 
@@ -1785,7 +2072,7 @@ class Migration(migrations.Migration):
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.utils import timezone
-from .managers import ApplicantManager, OrganizationManager
+from core.managers import ApplicantManager, OrganizationManager
 
 class Applicant(AbstractBaseUser, PermissionsMixin):
     id_number = models.CharField(max_length=50, unique=True)
@@ -1910,197 +2197,25 @@ class OrganizationSecurityAnswer(models.Model):
 // File: users/urls.py
 from django.urls import path
 from . import views
-from .views import get_security_questions, get_security_questions_choices, base_redirect_view
 
 urlpatterns = [
-    path('login/', views.login_view, name='login'),
-    path('register/', views.register_view, name='register'),
-    path('forgot-password/', views.public_verify_security_answers, name='forgot_password_check'), 
     path('reset-password/', views.reset_password, name='reset_password'),
-    path('security-questions/', get_security_questions, name='security_questions'),
-    path('api/get-security-questions-choices/', get_security_questions_choices, name='get_security_questions_choices'),
-    path('check_uniqueness/', views.check_uniqueness, name='check_uniqueness'),
-    path('home/', base_redirect_view, name='base'),
-    
     path('profile/', views.profile_view, name='profile'),
     path('chat/', views.chat_view, name='chat'),
-    path('logout/', views.logout_view, name='logout'), 
-    
-    path('dashboard/applicant/', views.applicant_dashboard, name='applicant_dashboard'),
-    path('dashboard/organization/', views.organization_dashboard, name='org_dashboard'),
-    path('dashboard/organization/new/', views.post_new_job, name='org_post_new'),
 ]
+
 // File: users/utils.py
 
 // File: users/views.py
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from django.http import JsonResponse
-from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 import json
-from django.views.decorators.http import require_GET
-from .forms import LoginForm, ApplicantRegisterForm, OrganizationRegisterForm
-from .models import Applicant, Organization, SecurityQuestion, ApplicantSecurityAnswer, OrganizationSecurityAnswer
+from .models import Applicant, Organization
 from django.contrib.auth.decorators import login_required
 from backend.models import JobPosting
-from .forms import LoginForm
-from django.contrib.auth import logout
 
-def home_redirect_view(request):
-    return redirect('login')
-
-def login_view(request):
-    form = LoginForm(request.POST if request.method == 'POST' else None)
-    security_questions = SecurityQuestion.objects.all().order_by('id')[:3]
-    context = {
-        'form': form,
-        'security_questions': security_questions,
-    }
-    if request.method == 'POST':
-        if form.is_valid():
-            id_number = form.cleaned_data['id_number']
-            password = form.cleaned_data['password']
-            user = None
-            try:
-                user = Applicant.objects.get(id_number=id_number)
-            except Applicant.DoesNotExist:
-                try:
-                    user = Organization.objects.get(license_number=id_number)
-                except Organization.DoesNotExist:
-                    messages.error(request, 'No user with that ID was found.')
-                    return render(request, 'login.html', context)
-            if not user.is_active:
-                messages.error(request, 'Your account is not active.')
-                return render(request, 'login.html', context)
-            if isinstance(user, Applicant):
-                username_for_auth = user.id_number
-            else:
-                username_for_auth = user.license_number
-            user_auth = authenticate(request, username=username_for_auth, password=password)
-            if user_auth:
-                login(request, user_auth)
-                return redirect('base')
-            messages.error(request, 'Invalid credentials.')
-    return render(request, 'login.html', context)
-
-@login_required
-def base_redirect_view(request):
-    return render(request, 'base.html')
-
-@csrf_exempt
-def register_view(request):
-    if request.method == 'POST':
-        user_type = request.POST.get('user_type')
-        if user_type == 'applicant':
-            form = ApplicantRegisterForm(request.POST, request.FILES)
-            AnswerModel = ApplicantSecurityAnswer
-        elif user_type == 'organization':
-            form = OrganizationRegisterForm(request.POST)
-            AnswerModel = OrganizationSecurityAnswer
-        else:
-            return JsonResponse({'success': False, 'message': 'Invalid user type'})
-        if form.is_valid():
-            user = form.save(commit=False)
-            user.pk = None
-            user.set_password(form.cleaned_data['password1'])
-            user.is_active = True
-            user.save()
-            answers = [
-                (form.cleaned_data['question1_subquestion'], form.cleaned_data['answer1']),
-                (form.cleaned_data['question2_subquestion'], form.cleaned_data['answer2']),
-                (form.cleaned_data['question3_subquestion'], form.cleaned_data['answer3'])
-            ]
-            questions = list(SecurityQuestion.objects.all().order_by('id'))
-            for idx, (q_text, ans) in enumerate(answers):
-                if ans.strip():
-                    question_obj = questions[idx]
-                    if user_type == 'applicant':
-                        AnswerModel.objects.create(
-                            applicant=user,
-                            question=question_obj,
-                            question_text=q_text,
-                            answer=ans
-                        )
-                    else:
-                        AnswerModel.objects.create(
-                            organization=user,
-                            question=question_obj,
-                            question_text=q_text,
-                            answer=ans
-                        )
-            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-            return redirect('login')
-        else:
-            return JsonResponse({'success': False, 'errors': form.errors})
-    return JsonResponse({'error': 'Invalid method'}, status=400)
-
-@csrf_exempt
-def get_security_questions(request):
-    if request.method == 'GET':
-        id_number = request.GET.get('id_number', '').strip()
-        if not id_number:
-            return JsonResponse([], safe=False)
-        applicant = Applicant.objects.filter(id_number=id_number).first()
-        if applicant:
-            answers = applicant.security_answers.all()
-        else:
-            org = Organization.objects.filter(license_number=id_number).first()
-            if not org:
-                return JsonResponse([], safe=False)
-            answers = org.security_answers.all()
-        questions = []
-        for ans in answers:
-            questions.append({
-                "question_text": ans.question_text
-            })
-        return JsonResponse(questions, safe=False)
-    return JsonResponse({'error': 'Invalid request method'}, status=405)
-
-@require_GET
-def get_security_questions_choices(request):
-    qs = SecurityQuestion.objects.all().order_by('id')[:3]
-    data = []
-    for q in qs:
-        data.append({
-            "question_text": q.question_text,
-            "options": [q.option1, q.option2, q.option3]
-        })
-    return JsonResponse(data, safe=False)
-
-@csrf_exempt
-def public_verify_security_answers(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        id_number = data.get('id_number')
-        user_type = data.get('user_type')
-        answers = data.get('answers', [])
-        if user_type == 'applicant':
-            user = Applicant.objects.filter(id_number=id_number).first()
-            if not user:
-                return JsonResponse({'valid': False, 'error': 'User not found'}, status=404)
-            correct = 0
-            for ans in answers:
-                if user.security_answers.filter(
-                    question_text=ans['question'],
-                    answer__iexact=ans['answer']
-                ).exists():
-                    correct += 1
-            return JsonResponse({'valid': correct >= 2})
-        elif user_type == 'organization':
-            user = Organization.objects.filter(license_number=id_number).first()
-            if not user:
-                return JsonResponse({'valid': False, 'error': 'User not found'}, status=404)
-            correct = 0
-            for ans in answers:
-                if user.security_answers.filter(
-                    question_text=ans['question'],
-                    answer__iexact=ans['answer']
-                ).exists():
-                    correct += 1
-            return JsonResponse({'valid': correct >= 2})
-        return JsonResponse({'valid': False, 'error': 'Invalid user type'})
-    return JsonResponse({'valid': False, 'error': 'Invalid request'}, status=400)
 
 @csrf_exempt
 def reset_password(request):
@@ -2145,81 +2260,6 @@ def reset_password(request):
         return JsonResponse({'success': False, 'message': 'Invalid user type'})
     return JsonResponse({'success': False, 'message': 'Invalid request'}, status=400)
 
-def check_uniqueness(request):
-    id_code = request.GET.get("id_code")
-    email = request.GET.get("email")
-    user_type = request.GET.get("user_type")
-    response = {}
-    if user_type == "applicant":
-        if id_code:
-            exists = (Applicant.objects.filter(id_number=id_code).exists() or Organization.objects.filter(license_number=id_code).exists())
-            response["id_code_exists"] = exists
-        if email:
-            exists = (Applicant.objects.filter(email=email).exists() or Organization.objects.filter(organization_email=email).exists())
-            response["email_exists"] = exists
-    elif user_type == "organization":
-        if id_code:
-            exists = (Organization.objects.filter(license_number=id_code).exists() or Applicant.objects.filter(id_number=id_code).exists())
-            response["id_code_exists"] = exists
-        if email:
-            exists = (Organization.objects.filter(organization_email=email).exists() or Applicant.objects.filter(email=email).exists())
-            response["email_exists"] = exists
-    else:
-        return JsonResponse({"error": "Invalid user type"}, status=400)
-    if response:
-        return JsonResponse(response)
-    return JsonResponse({"error": "Invalid request"}, status=400)
-
-@login_required
-def applicant_dashboard(request):
-    if not hasattr(request.user, 'id_number'):
-        return redirect('org_dashboard')
-
-    query = request.GET.get('q', '')
-    job_type = request.GET.get('job_type', '')
-    jobs = JobPosting.objects.filter(is_active=True)
-    if query:
-        jobs = jobs.filter(title__icontains=query)
-    if job_type:
-        jobs = jobs.filter(job_type=job_type)
-
-    return render(request, 'dashboards/applicant_dashboard.html', {
-        'jobs': jobs,
-        'search_query': query,
-        'selected_job_type': job_type
-    })
-
-@login_required
-def organization_dashboard(request):
-    if not hasattr(request.user, 'license_number'):
-        return redirect('applicant_dashboard')
-
-    jobs = JobPosting.objects.filter(org=request.user, is_active=True)
-    return render(request, 'dashboards/organization_dashboard.html', {'jobs': jobs})
-
-@login_required
-def post_new_job(request):
-    # Only organization users should access this view
-    if hasattr(request.user, 'user_type') and request.user.user_type != 'organization':
-        return redirect('applicant_dashboard')
-    if request.method == 'POST':
-        # Process the form submission for a new job
-        title = request.POST.get('title')
-        job_type = request.POST.get('job_type')
-        location = request.POST.get('location')
-        deadline = request.POST.get('deadline')
-        # ... (validate inputs as needed)
-        # Create new Job associated with this organization user
-        Job.objects.create(
-            title=title, job_type=job_type, location=location, deadline=deadline,
-            owner=request.user, is_active=True
-        )
-        # Redirect back to organization dashboard (view postings)
-        return redirect('org_dashboard')
-    else:
-        # Render a form for creating a new job
-        return render(request, 'post_new_job.html', {})
-    
 
 @login_required
 def profile_view(request):
@@ -2228,7 +2268,3 @@ def profile_view(request):
 @login_required
 def chat_view(request):
     return render(request, 'chat.html')
-
-def logout_view(request):
-    logout(request)
-    return redirect('login')

@@ -21,12 +21,12 @@ INSTALLED_APPS = [
     'crispy_bootstrap5',
     'users',
     'backend',
-    'core',  
+    'core',
 ]
 
 AUTHENTICATION_BACKENDS = [
-    'core.backends.ApplicantOrOrgBackend',
-    'django.contrib.auth.backends.ModelBackend',
+    'core.backends.ApplicantBackend',
+    'core.backends.OrganizationBackend',
 ]
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
@@ -34,10 +34,10 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware', 
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',  
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -73,7 +73,7 @@ DATABASES = {
     }
 }
 
-LOGIN_REDIRECT_URL = '/dashboard/redirect/'
+LOGIN_REDIRECT_URL = '/base/'
 
 
 AUTH_PASSWORD_VALIDATORS = [
