@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.utils import timezone
-from .managers import ApplicantManager, OrganizationManager
+from core.managers import ApplicantManager, OrganizationManager
 
 class Applicant(AbstractBaseUser, PermissionsMixin):
     id_number = models.CharField(max_length=50, unique=True)

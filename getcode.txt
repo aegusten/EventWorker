@@ -185,7 +185,7 @@ class Feedback(models.Model):
     applicant = models.ForeignKey(Applicant, on_delete=models.CASCADE)
     job = models.ForeignKey(JobPosting, on_delete=models.CASCADE)
     comment = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True) #Fk job post id
 
     def __str__(self):
         return f"Feedback for {self.job.title} by {self.applicant.id_number}"
@@ -238,6 +238,11 @@ INSTALLED_APPS = [
     'backend',
 ]
 
+AUTHENTICATION_BACKENDS = [
+    'users.backends.ApplicantOrOrgBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
@@ -282,6 +287,9 @@ DATABASES = {
     }
 }
 
+LOGIN_REDIRECT_URL = '/dashboard/redirect/'
+
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -322,7 +330,7 @@ urlpatterns = [
     path('account/', include('users.urls')),
     path('jobs/', include('backend.urls')),
     path('backend/', include('backend.urls')),
-
+    path('account/', include('users.urls')),
 ]
 
 urlpatterns += static(
@@ -494,71 +502,342 @@ footer.login-footer {
   opacity: 0.5;
 }
 
+
 // File: static/css/main.css
 
+// File: static/css/theme.css
+/* theme.css: CSS variables and styles for EventWork Connect */
+:root {
+    --bg-main: #d0d6d6;
+    --bg-secondary: #86b9b0;
+    --btn-main: #4c7273;
+    --btn-hover: #365c5c;
+    --text-main: #041421;
+    --text-subtle: #042630;
+    --white: #ffffff;
+  }
+  
+  /* Overall page style */
+  body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    font-family: Arial, sans-serif;
+    margin: 0;
+  }
+  
+  /* Header and navigation */
+  header {
+    background-color: var(--bg-secondary);
+    padding: 10px;
+  }
+  header .nav-right {
+    float: right;
+  }
+  header .nav-right a {
+    color: var(--white);
+    text-decoration: none;
+    margin-left: 20px;
+    font-weight: bold;
+  }
+  header .nav-right a:hover {
+    text-decoration: underline;
+  }
+  
+  /* Footer style */
+  footer {
+    background-color: var(--bg-secondary);
+    color: var(--white);
+    text-align: center;
+    padding: 8px;
+    margin-top: 20px;
+  }
+  
+  /* Search bar and job list (Applicant Dashboard) */
+  .search-bar {
+    background-color: var(--bg-secondary);
+    padding: 10px;
+    margin-bottom: 15px;
+  }
+  .search-bar input, .search-bar select {
+    padding: 5px;
+    margin-right: 5px;
+  }
+  .search-bar button {
+    background-color: var(--btn-main);
+    color: var(--white);
+    border: none;
+    padding: 6px 12px;
+    cursor: pointer;
+  }
+  .search-bar button:hover {
+    background-color: var(--btn-hover);
+  }
+  
+  /* Job posting cards (Applicant Dashboard) */
+  .job-card {
+    background-color: var(--white);
+    border: 1px solid var(--bg-secondary);
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+  .job-card h3 {
+    margin: 0 0 5px 0;
+  }
+  .job-card p {
+    color: var(--text-subtle);
+    margin: 5px 0;
+  }
+  .apply-btn {
+    background-color: var(--btn-main);
+    color: var(--white);
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+  }
+  .apply-btn:hover {
+    background-color: var(--btn-hover);
+  }
+  
+  /* Organization Dashboard styles */
+  .org-actions {
+    margin: 10px 0;
+  }
+  .org-actions a {
+    background-color: var(--btn-main);
+    color: var(--white);
+    text-decoration: none;
+    padding: 8px 15px;
+    margin-right: 10px;
+    border-radius: 4px;
+  }
+  .org-actions a:hover {
+    background-color: var(--btn-hover);
+  }
+  
+  /* Jobs table (Organization Dashboard) */
+  .jobs-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+  .jobs-table th, .jobs-table td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #ccc;
+  }
+  .jobs-table th {
+    background-color: var(--bg-secondary);
+    color: var(--white);
+  }
+  .jobs-table tr:nth-child(even) {
+    background-color: #efefef;
+  }
+  /* Action links in the table */
+  .jobs-table a {
+    color: var(--text-main);
+    text-decoration: none;
+    margin-right: 5px;
+  }
+  .jobs-table a:hover {
+    text-decoration: underline;
+  }
+  /* Delete button styled as link */
+  .link-btn {
+    background: none;
+    border: none;
+    color: var(--text-main);
+    cursor: pointer;
+    padding: 0;
+    font: inherit;
+  }
+  .link-btn:hover {
+    text-decoration: underline;
+  }
+  /* New Job form adjustments */
+  form label {
+    font-weight: bold;
+  }
+  form input, form select {
+    margin-top: 4px;
+    margin-bottom: 12px;
+    padding: 5px;
+    width: 50%;
+  }
+  .cancel-link {
+    margin-left: 10px;
+    text-decoration: none;
+    color: var(--text-subtle);
+  }
+  .cancel-link:hover {
+    text-decoration: underline;
+  }
+  
 // File: templates/base.html
+{% load static %}
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}EventWork Connect{% endblock %}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .navbar-brand {
-            font-weight: bold;
-        }
-        footer {
-            margin-top: 3rem;
-            padding: 1rem 0;
-            background-color: #f1f1f1;
-            text-align: center;
-        }
-    </style>
-    {% block extra_head %}{% endblock %}
+  <meta charset="UTF-8">
+  <title>EventWork Connect</title>
+  <!-- Link the CSS theme -->
+  <link rel="stylesheet" href="{% static 'css/theme.css' %}">
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
-    <div class="container">
-        <a class="navbar-brand" href="/">EventWork Connect</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link" href="/users/login/">Login</a></li>
-                <li class="nav-item"><a class="nav-link" href="/users/register/">Register</a></li>
-            </ul>
-        </div>
-    </div>
-</nav>
 
-<div class="container mt-4">
-    {% block content %}{% endblock %}
-</div>
+  <div class="nav-right">
+    {% if user.is_authenticated %}
 
-<footer>
-    <div class="container">
-        <p class="mb-0">&copy; 2025 EventWork Connect. All rights reserved.</p>
-    </div>
-</footer>
+        <a href="{% url 'profile' %}">Profile</a>
+        <a href="{% url 'chat' %}">Chat</a>
+        <a href="{% url 'logout' %}">Logout</a>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-{% block extra_js %}{% endblock %}
+    {% endif %}
+  </div>
+  
+
+  <main>
+    {% block content %}
+      {% if user.is_authenticated %}
+        {% if user.applicant %}
+          {% include "dashboards/applicant_dashboard.html" %}
+        {% elif user.organization %}
+          {% include "dashboards/organization_dashboard.html" %}
+        {% endif %}
+      {% else %}
+        <p>Please login to continue.</p>
+      {% endif %}
+    {% endblock %}
+  </main>
+  
+
+  <footer>
+    <p>&copy; 2025 EventWork Connect. All rights reserved.</p>
+  </footer>
+
 </body>
 </html>
 
-// File: templates/dashboard.html
-{% extends 'base.html' %}
+// File: templates/dashboards/applicant_dashboard.html
+{% extends "base.html" %}
+{% load static %}
+
 {% block content %}
-<div class="container text-center mt-5">
-  <h1>Welcome to Your Dashboard!</h1>
-  <p class="lead">You're successfully logged in 🎉</p>
-  <a href="{% url 'logout' %}" class="btn btn-danger mt-4">Logout</a>
-</div>
+
+  <h2>Find Opportunities</h2>
+  <div class="search-bar">
+    <form method="get" action="">
+      <input type="text" name="q" placeholder="Search jobs..." value="{{ search_query|default:'' }}">
+      <select name="job_type">
+        <option value="">All Types</option>
+        <option value="full-time" {% if selected_job_type == "full-time" %}selected{% endif %}>Full-time</option>
+        <option value="part-time" {% if selected_job_type == "part-time" %}selected{% endif %}>Part-time</option>
+        <option value="volunteer" {% if selected_job_type == "volunteer" %}selected{% endif %}>Volunteer</option>
+      </select>
+      <button type="submit">Search</button>
+    </form>
+  </div>
+
+  <div class="job-list">
+    {% for job in jobs %}
+      <div class="job-card">
+        <h3>{{ job.title }}</h3>
+        <p>
+          <strong>Type:</strong> {{ job.job_type }} &middot;
+          <strong>Location:</strong> {{ job.location }} &middot;
+          <strong>Deadline:</strong> {{ job.deadline }}
+        </p>
+        <a href="{% url 'apply_job' job.id %}" class="apply-btn">Apply</a>
+      </div>
+    {% empty %}
+      <p>No jobs found.</p>
+    {% endfor %}
+  </div>
+<style>
+.search-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.job-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.job-card {
+  background-color: var(--white);
+  border: 1px solid var(--btn-main);
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 0 2px 10px rgba(76, 114, 115, 0.1);
+}
+
+.apply-btn {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 0.4rem 0.8rem;
+  background-color: var(--btn-main);
+  color: var(--white);
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.apply-btn:hover {
+  background-color: var(--btn-hover);
+}
+
+</style>
+
+{% endblock %}
+
+// File: templates/dashboards/organization_dashboard.html
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+  <h2>Organization Dashboard</h2>
+  <!-- Action links for the organization -->
+  <div class="org-actions">
+    <a href="{% url 'org_dashboard' %}">View Postings</a>
+    <a href="{% url 'org_post_new' %}">Post New Job</a>
+  </div>
+
+  <!-- List of the organization's active job postings -->
+  <h3>Your Job Postings</h3>
+  <table class="jobs-table">
+    <thead>
+      <tr>
+        <th>Title</th><th>Type</th><th>Location</th><th>Deadline</th><th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for job in jobs %}
+      <tr>
+        <td>{{ job.title }}</td>
+        <td>{{ job.job_type }}</td>
+        <td>{{ job.location }}</td>
+        <td>{{ job.deadline }}</td>
+        <td>
+          <a href="{% url 'view_applicants' job.id %}">View Applicants</a> | 
+          <a href="{% url 'shortlist_job' job.id %}">Shortlist</a> | 
+          <a href="{% url 'message_applicants' job.id %}">Message</a> | 
+          <form action="{% url 'delete_job' job.id %}" method="post" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="link-btn">Delete</button>
+          </form>
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="5"><em>No active job postings.</em></td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
 {% endblock %}
 
 // File: templates/login.html
@@ -838,51 +1117,79 @@ document.addEventListener('DOMContentLoaded', function() {
         <div id="signupStep1" class="px-3 py-2">
           <div class="row g-4">
             <div class="col-md-6 applicant-only">
-              <label class="form-label fw-bold">ID Number</label>
-              <input type="text" class="form-control" name="id_number" required>
-              <div class="text-danger mt-1 id-code-error"></div>
+              <label class="form-label fw-bold">
+                Passport ID
+              </label>
+              <input type="text" class="form-control" name="id_number">
+              <div class="id-code-error text-danger mt-1"></div>
             </div>
+
             <div class="col-md-6 org-only d-none">
-              <label class="form-label fw-bold">License Number</label>
-              <input type="text" class="form-control" name="license_number" required>
-              <div class="text-danger mt-1 id-code-error"></div>
+              <label class="form-label fw-bold">
+                License Number
+              </label>
+              <input type="text" class="form-control" name="license_number">
+              <div class="id-code-error text-danger mt-1"></div>
             </div>
+
             <div class="col-md-6 applicant-only">
-              <label class="form-label fw-bold">Full Name</label>
-              <input type="text" class="form-control" name="full_name" required>
+              <label class="form-label fw-bold">
+                Full Name
+              </label>
+              <input type="text" class="form-control" name="full_name">
             </div>
+
             <div class="col-md-6 org-only d-none">
-              <label class="form-label fw-bold">Organization Name</label>
-              <input type="text" class="form-control" name="organization_name" required>
+              <label class="form-label fw-bold">
+                Organization Name
+              </label>
+              <input type="text" class="form-control" name="organization_name">
             </div>
+
             <div class="col-md-6 applicant-only">
-              <label class="form-label fw-bold">Email</label>
-              <input type="email" class="form-control" name="email" required>
-              <div class="text-danger mt-1 email-error"></div>
+              <label class="form-label fw-bold">
+                Email
+              </label>
+              <input type="email" class="form-control" name="email">
+              <div class="email-error text-danger mt-1"></div>
             </div>
+
             <div class="col-md-6 org-only d-none">
-              <label class="form-label fw-bold">Organization Email</label>
-              <input type="email" class="form-control" name="organization_email" required>
-              <div class="text-danger mt-1 email-error"></div>
+              <label class="form-label fw-bold">
+                Organization Email
+              </label>
+              <input type="email" class="form-control" name="organization_email">
+              <div class="email-error text-danger mt-1"></div>
             </div>
+
             <div class="col-md-6 applicant-only">
-              <label class="form-label fw-bold">Phone</label>
-              <input type="tel" class="form-control" name="phone_number" required>
+              <label class="form-label fw-bold">
+                Phone
+              </label>
+              <input type="tel" class="form-control" name="phone_number">
             </div>
+
             <div class="col-md-6 org-only d-none">
-              <label class="form-label fw-bold">Organization Phone</label>
-              <input type="tel" class="form-control" name="organization_phone" required>
+              <label class="form-label fw-bold">
+                Organization Phone
+              </label>
+              <input type="tel" class="form-control" name="organization_phone">
             </div>
+
             <div class="col-md-6">
-              <label class="form-label fw-bold">Password</label>
-              <input type="password" class="form-control" name="password1" required>
+              <label class="form-label fw-bold">
+                Password
+              </label>
+              <input type="password" class="form-control" name="password1">
             </div>
+
             <div class="col-md-6">
-              <label class="form-label fw-bold">Confirm Password</label>
-              <input type="password" class="form-control" name="password2" required>
-              <div class="text-danger mt-1 password-error"></div>
+              <label class="form-label fw-bold">
+                Confirm Password
+              </label>
+              <input type="password" class="form-control" name="password2">
             </div>
-          </div>
+
           </div>
           <div class="d-grid mt-4">
             <button type="button" class="n btn-outline-light mt-3 w-100" id="signupNextBtn">Next</button>
@@ -998,6 +1305,43 @@ document.addEventListener('DOMContentLoaded', function() {
     </form>
   </div>
 </div>
+// File: templates/utils/post_new_job.html
+{% extends "base.html" %}
+{% block content %}
+
+  <h2>Post a New Job</h2>
+  <form method="post" action="">
+    {% csrf_token %}
+    <p>
+      <label>Job Title:<br>
+        <input type="text" name="title" required>
+      </label>
+    </p>
+    <p>
+      <label>Job Type:<br>
+        <select name="job_type">
+          <option value="full-time">Full-time</option>
+          <option value="part-time">Part-time</option>
+          <option value="volunteer">Volunteer</option>
+        </select>
+      </label>
+    </p>
+    <p>
+      <label>Location:<br>
+        <input type="text" name="location" required>
+      </label>
+    </p>
+    <p>
+      <label>Application Deadline:<br>
+        <input type="date" name="deadline">
+      </label>
+    </p>
+    <button type="submit">Create Job</button>
+    <a href="{% url 'org_dashboard' %}" class="cancel-link">Cancel</a>
+  </form>
+
+{% endblock %}
+
 // File: urls.py
 from django.contrib import admin
 from django.urls import path, include
@@ -1015,30 +1359,55 @@ urlpatterns = [
 
 // File: users/api/views.py
 
+// File: users/backends.py
+from django.contrib.auth.backends import BaseBackend
+from users.models import Applicant, Organization
+
+class ApplicantOrOrgBackend(BaseBackend):
+    def authenticate(self, request, username=None, password=None):
+        try:
+            user = Applicant.objects.get(id_number=username)
+        except Applicant.DoesNotExist:
+            try:
+                user = Organization.objects.get(license_number=username)
+            except Organization.DoesNotExist:
+                return None
+        if user.check_password(password):
+            return user
+        return None
+
+    def get_user(self, user_id):
+        from users.models import Applicant, Organization
+        try:
+            return Applicant.objects.get(pk=user_id)
+        except Applicant.DoesNotExist:
+            try:
+                return Organization.objects.get(pk=user_id)
+            except Organization.DoesNotExist:
+                return None
+
 // File: users/forms.py
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError
 from .models import Applicant, Organization, SecurityQuestion
 
-class LoginForm(forms.Form):
-    id_number = forms.CharField(label="Passport/License ID", max_length=100)
-    password = forms.CharField(widget=forms.PasswordInput)
-
 class ApplicantRegisterForm(UserCreationForm):
+
     question1_subquestion = forms.ChoiceField(label="Select Question 1", required=True)
     answer1 = forms.CharField(label="Answer 1", required=True)
     question2_subquestion = forms.ChoiceField(label="Select Question 2", required=True)
     answer2 = forms.CharField(label="Answer 2", required=True)
     question3_subquestion = forms.ChoiceField(label="Select Question 3 (optional)", required=False)
     answer3 = forms.CharField(label="Answer 3 (optional)", required=False)
+    cv = forms.FileField(required=False, label="Upload CV (optional)")
 
     class Meta:
         model = Applicant
         fields = [
-            'id_number','full_name','email','phone_number','age','country','address',
-            'education','cv','availability','preferred_location','job_type_interest',
-            'skills','location_of_interest','password1','password2'
+            'id_number', 'full_name', 'email', 'phone_number', 'age', 'country', 'address',
+            'education', 'cv', 'availability', 'preferred_location', 'job_type_interest',
+            'skills', 'location_of_interest', 'password1', 'password2'
         ]
 
     def __init__(self, *args, **kwargs):
@@ -1096,9 +1465,9 @@ class OrganizationRegisterForm(UserCreationForm):
     class Meta:
         model = Organization
         fields = [
-            'license_number','organization_name','organization_email','organization_phone',
-            'establishment_date','location','achievements','sector','company_type',
-            'password1','password2'
+            'license_number', 'organization_name', 'organization_email', 'organization_phone',
+            'establishment_date', 'location', 'achievements', 'sector', 'company_type',
+            'password1', 'password2'
         ]
 
     def __init__(self, *args, **kwargs):
@@ -1132,8 +1501,14 @@ class OrganizationRegisterForm(UserCreationForm):
         if sum(bool(a) for a in answers) < 2:
             raise forms.ValidationError("Please answer at least two security questions.")
         return cleaned
+
+class LoginForm(forms.Form):
+    id_number = forms.CharField(label="Passport/License ID", max_length=100)
+    password = forms.CharField(widget=forms.PasswordInput)
 // File: users/managers.py
 from django.contrib.auth.base_user import BaseUserManager
+from django.contrib.auth.views import LoginView
+from django.urls import reverse
 
 class ApplicantManager(BaseUserManager):
     def create_user(self, id_number, full_name, email, password=None, **extra_fields):
@@ -1173,6 +1548,15 @@ class OrganizationManager(BaseUserManager):
         extra_fields.setdefault('is_superuser', True)
         return self.create_user(license_number, full_name, email, password, **extra_fields)
 
+
+class RoleBasedLoginView(LoginView):
+    def get_success_url(self):
+        user = self.request.user
+        # Redirect based on user type
+        if hasattr(user, 'user_type') and user.user_type == 'organization':
+            return reverse('org_dashboard')
+        else:
+            return reverse('applicant_dashboard')
 // File: users/migrations/0001_initial.py
 # Generated by Django 5.2 on 2025-04-13 12:36
 
@@ -1526,8 +1910,7 @@ class OrganizationSecurityAnswer(models.Model):
 // File: users/urls.py
 from django.urls import path
 from . import views
-from users.views import register_view 
-from .views import get_security_questions, get_security_questions_choices
+from .views import get_security_questions, get_security_questions_choices, base_redirect_view
 
 urlpatterns = [
     path('login/', views.login_view, name='login'),
@@ -1537,8 +1920,16 @@ urlpatterns = [
     path('security-questions/', get_security_questions, name='security_questions'),
     path('api/get-security-questions-choices/', get_security_questions_choices, name='get_security_questions_choices'),
     path('check_uniqueness/', views.check_uniqueness, name='check_uniqueness'),
+    path('home/', base_redirect_view, name='base'),
+    
+    path('profile/', views.profile_view, name='profile'),
+    path('chat/', views.chat_view, name='chat'),
+    path('logout/', views.logout_view, name='logout'), 
+    
+    path('dashboard/applicant/', views.applicant_dashboard, name='applicant_dashboard'),
+    path('dashboard/organization/', views.organization_dashboard, name='org_dashboard'),
+    path('dashboard/organization/new/', views.post_new_job, name='org_post_new'),
 ]
-
 // File: users/utils.py
 
 // File: users/views.py
@@ -1551,6 +1942,10 @@ import json
 from django.views.decorators.http import require_GET
 from .forms import LoginForm, ApplicantRegisterForm, OrganizationRegisterForm
 from .models import Applicant, Organization, SecurityQuestion, ApplicantSecurityAnswer, OrganizationSecurityAnswer
+from django.contrib.auth.decorators import login_required
+from backend.models import JobPosting
+from .forms import LoginForm
+from django.contrib.auth import logout
 
 def home_redirect_view(request):
     return redirect('login')
@@ -1585,12 +1980,13 @@ def login_view(request):
             user_auth = authenticate(request, username=username_for_auth, password=password)
             if user_auth:
                 login(request, user_auth)
-                return redirect('dashboard')
+                return redirect('base')
             messages.error(request, 'Invalid credentials.')
     return render(request, 'login.html', context)
 
-def dashboard_view(request):
-    return render(request, 'dashboard.html')
+@login_required
+def base_redirect_view(request):
+    return render(request, 'base.html')
 
 @csrf_exempt
 def register_view(request):
@@ -1603,21 +1999,19 @@ def register_view(request):
             form = OrganizationRegisterForm(request.POST)
             AnswerModel = OrganizationSecurityAnswer
         else:
-            print(" Invalid user type:", user_type)
             return JsonResponse({'success': False, 'message': 'Invalid user type'})
-
         if form.is_valid():
             user = form.save(commit=False)
+            user.pk = None
+            user.set_password(form.cleaned_data['password1'])
             user.is_active = True
             user.save()
-
             answers = [
                 (form.cleaned_data['question1_subquestion'], form.cleaned_data['answer1']),
                 (form.cleaned_data['question2_subquestion'], form.cleaned_data['answer2']),
                 (form.cleaned_data['question3_subquestion'], form.cleaned_data['answer3'])
             ]
             questions = list(SecurityQuestion.objects.all().order_by('id'))
-
             for idx, (q_text, ans) in enumerate(answers):
                 if ans.strip():
                     question_obj = questions[idx]
@@ -1635,16 +2029,10 @@ def register_view(request):
                             question_text=q_text,
                             answer=ans
                         )
-
-            login(request, user)  
-            return redirect('login')  
-
-        print("Form validation failed:")
-        for field, errors in form.errors.items():
-            print(f"  - {field}: {errors}")
-        return JsonResponse({'success': False})  
-
-    print(f" Invalid method used: {request.method}")
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            return redirect('login')
+        else:
+            return JsonResponse({'success': False, 'errors': form.errors})
     return JsonResponse({'error': 'Invalid method'}, status=400)
 
 @csrf_exempt
@@ -1761,18 +2149,86 @@ def check_uniqueness(request):
     id_code = request.GET.get("id_code")
     email = request.GET.get("email")
     user_type = request.GET.get("user_type")
-    
     response = {}
-    
     if user_type == "applicant":
         if id_code:
-            response["id_code_exists"] = Applicant.objects.filter(id_number=id_code).exists()
+            exists = (Applicant.objects.filter(id_number=id_code).exists() or Organization.objects.filter(license_number=id_code).exists())
+            response["id_code_exists"] = exists
         if email:
-            response["email_exists"] = Applicant.objects.filter(email=email).exists()
+            exists = (Applicant.objects.filter(email=email).exists() or Organization.objects.filter(organization_email=email).exists())
+            response["email_exists"] = exists
     elif user_type == "organization":
         if id_code:
-            response["id_code_exists"] = Organization.objects.filter(license_number=id_code).exists()
+            exists = (Organization.objects.filter(license_number=id_code).exists() or Applicant.objects.filter(id_number=id_code).exists())
+            response["id_code_exists"] = exists
         if email:
-            response["email_exists"] = Organization.objects.filter(organization_email=email).exists()
+            exists = (Organization.objects.filter(organization_email=email).exists() or Applicant.objects.filter(email=email).exists())
+            response["email_exists"] = exists
+    else:
+        return JsonResponse({"error": "Invalid user type"}, status=400)
+    if response:
+        return JsonResponse(response)
+    return JsonResponse({"error": "Invalid request"}, status=400)
+
+@login_required
+def applicant_dashboard(request):
+    if not hasattr(request.user, 'id_number'):
+        return redirect('org_dashboard')
+
+    query = request.GET.get('q', '')
+    job_type = request.GET.get('job_type', '')
+    jobs = JobPosting.objects.filter(is_active=True)
+    if query:
+        jobs = jobs.filter(title__icontains=query)
+    if job_type:
+        jobs = jobs.filter(job_type=job_type)
+
+    return render(request, 'dashboards/applicant_dashboard.html', {
+        'jobs': jobs,
+        'search_query': query,
+        'selected_job_type': job_type
+    })
+
+@login_required
+def organization_dashboard(request):
+    if not hasattr(request.user, 'license_number'):
+        return redirect('applicant_dashboard')
+
+    jobs = JobPosting.objects.filter(org=request.user, is_active=True)
+    return render(request, 'dashboards/organization_dashboard.html', {'jobs': jobs})
+
+@login_required
+def post_new_job(request):
+    # Only organization users should access this view
+    if hasattr(request.user, 'user_type') and request.user.user_type != 'organization':
+        return redirect('applicant_dashboard')
+    if request.method == 'POST':
+        # Process the form submission for a new job
+        title = request.POST.get('title')
+        job_type = request.POST.get('job_type')
+        location = request.POST.get('location')
+        deadline = request.POST.get('deadline')
+        # ... (validate inputs as needed)
+        # Create new Job associated with this organization user
+        Job.objects.create(
+            title=title, job_type=job_type, location=location, deadline=deadline,
+            owner=request.user, is_active=True
+        )
+        # Redirect back to organization dashboard (view postings)
+        return redirect('org_dashboard')
+    else:
+        # Render a form for creating a new job
+        return render(request, 'post_new_job.html', {})
     
-    return JsonResponse(response)
+
+@login_required
+def profile_view(request):
+    return render(request, 'profile.html')
+
+@login_required
+def chat_view(request):
+    return render(request, 'chat.html')
+
+def logout_view(request):
+    logout(request)
+    return redirect('login')
