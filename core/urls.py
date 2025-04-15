@@ -10,20 +10,21 @@ from .views import (
     base_redirect_view,
     logout_view,
     check_uniqueness,
+    applicant_dashboard,
+    organization_dashboard,
 )
 
 urlpatterns = [
- 
     path('', home_redirect_view, name='home'),
     path('admin/', admin.site.urls),
-
-    path('login/', login_view, name='login'),
+    path('accounts/login/', login_view, name='login'),
     path('register/', register_view, name='register'),
     path('base/', base_redirect_view, name='base'),
     path('logout/', logout_view, name='logout'),
     path('account/check_uniqueness/', check_uniqueness, name='check_uniqueness'),
     path('account/', include('users.urls')),
-
+    path('dashboard/organization/', organization_dashboard, name='organization_dashboard'),
+    path('dashboard/applicant/', applicant_dashboard, name='applicant_dashboard'),
     path('jobs/', include('backend.urls')),
 ]
 

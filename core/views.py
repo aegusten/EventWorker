@@ -9,6 +9,10 @@ from .forms import LoginForm
 from django.contrib import messages
 from django.http import JsonResponse
 
+from backend.models import (
+    JobPosting
+)
+
 from .forms import (
     LoginForm, 
     ApplicantRegisterForm, 
@@ -27,42 +31,58 @@ def home_redirect_view(request):
     return redirect('login')
 
 def login_view(request):
-    form = LoginForm(request.POST if request.method == 'POST' else None)
-    security_questions = SecurityQuestion.objects.all().order_by('id')[:3]
-    context = {
-        'form': form,
-        'security_questions': security_questions,
-    }
+    form = LoginForm(request.POST or None)
+    context = {'form': form}
     if request.method == 'POST':
         if form.is_valid():
             id_number = form.cleaned_data['id_number']
             password = form.cleaned_data['password']
-            user = None
-            try:
-                user = Applicant.objects.get(id_number=id_number)
-            except Applicant.DoesNotExist:
-                try:
-                    user = Organization.objects.get(license_number=id_number)
-                except Organization.DoesNotExist:
-                    messages.error(request, 'No user with that ID was found.')
-                    return render(request, 'login.html', context)
-            if not user.is_active:
-                messages.error(request, 'Your account is not active.')
-                return render(request, 'login.html', context)
-            if isinstance(user, Applicant):
-                username_for_auth = user.id_number
+            user = authenticate(request, username=id_number, password=password)
+            if user:
+                login(request, user) 
+                if isinstance(user, Applicant):
+                    return redirect('applicant_dashboard')
+                elif isinstance(user, Organization):
+                    return redirect('organization_dashboard')
+                else:
+                    messages.error(request, "Unrecognized user type.")
             else:
-                username_for_auth = user.license_number
-            user_auth = authenticate(request, username=username_for_auth, password=password)
-            if user_auth:
-                login(request, user_auth)
-                return redirect('base')
-            messages.error(request, 'Invalid credentials.')
+                messages.error(request, 'Invalid credentials.')
     return render(request, 'login.html', context)
+
 
 @login_required
 def base_redirect_view(request):
-    return render(request, 'base.html')
+    if hasattr(request.user, 'license_number'):
+        return redirect('organization_dashboard')
+    elif hasattr(request.user, 'id_number'):
+        return redirect('applicant_dashboard')
+    else:
+        logout(request)
+        return redirect('login')
+    
+@login_required
+def organization_dashboard(request):
+    if not hasattr(request.user, 'license_number'):
+        return redirect('applicant_dashboard')
+    return render(request, 'dashboards/organization_dashboard.html', {})
+
+@login_required
+def applicant_dashboard(request):
+    query = request.GET.get('q', '')
+    job_type = request.GET.get('job_type', '')
+    jobs = JobPosting.objects.filter(is_active=True)
+
+    if query:
+        jobs = jobs.filter(title__icontains=query)
+    if job_type:
+        jobs = jobs.filter(job_type=job_type)
+
+    return render(request, 'dashboards/applicant_dashboard.html', {
+        'jobs': jobs,
+        'search_query': query,
+        'selected_job_type': job_type
+    })
 
 @csrf_exempt
 def register_view(request):

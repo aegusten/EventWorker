@@ -1,39 +1,39 @@
-from django.contrib.auth.backends import BaseBackend
-from users.models import Applicant, Organization
-from django.shortcuts import render, redirect
-from users.models import JobPosting
-from django.contrib.auth.decorators import login_required
-from .models import Job
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import JobPosting  # Your job model
+from .forms import JobPostingForm
 
-@login_required
-def organization_dashboard(request):
-    if not hasattr(request.user, 'license_number'):
-        return redirect('applicant_dashboard')
-
-    jobs = JobPosting.objects.filter(org=request.user, is_active=True)
-    return render(request, 'dashboards/organization_dashboard.html', {'jobs': jobs})
-
-
-@login_required
 def post_new_job(request):
-    # Only organization users should access this view
-    if hasattr(request.user, 'user_type') and request.user.user_type != 'organization':
-        return redirect('applicant_dashboard')
     if request.method == 'POST':
-        # Process the form submission for a new job
-        title = request.POST.get('title')
-        job_type = request.POST.get('job_type')
-        location = request.POST.get('location')
-        deadline = request.POST.get('deadline')
-        # ... (validate inputs as needed)
-        # Create new Job associated with this organization user
-        Job.objects.create(
-            title=title, job_type=job_type, location=location, deadline=deadline,
-            owner=request.user, is_active=True
-        )
-        # Redirect back to organization dashboard (view postings)
-        return redirect('org_dashboard')
+        form = JobPostingForm(request.POST)
+        if form.is_valid():
+            job = form.save(commit=False)
+            job.org = request.user  # Set the organization (assuming request.user is an Organization instance)
+            job.save()
+            return redirect('organization_dashboard')
     else:
-        # Render a form for creating a new job
-        return render(request, 'post_new_job.html', {})
-    
+        form = JobPostingForm()
+    return render(request, 'backend/post_new_job.html', {'form': form})
+
+def view_applicants(request, job_id):
+    job = get_object_or_404(JobPosting, id=job_id, organization=request.user)
+    applicants = job.applications.all()  # Assuming a relation to applicants
+    return render(request, 'backend/view_applicants.html', {'job': job, 'applicants': applicants})
+
+def shortlist_job(request, job_id):
+    job = get_object_or_404(JobPosting, id=job_id, organization=request.user)
+    # Add shortlisting logic here (e.g., update a status or list)
+    return redirect('organization_dashboard')  # Redirect after action
+
+def message_applicants(request, job_id):
+    job = get_object_or_404(JobPosting, id=job_id, organization=request.user)
+    if request.method == 'POST':
+        # Add messaging logic here (e.g., send email or notification)
+        return redirect('organization_dashboard')
+    return render(request, 'backend/message_applicants.html', {'job': job})
+
+def delete_job(request, job_id):
+    job = get_object_or_404(JobPosting, id=job_id, organization=request.user)
+    if request.method == 'POST':
+        job.delete()
+        return redirect('organization_dashboard')
+    return render(request, 'backend/delete_job_confirm.html', {'job': job})

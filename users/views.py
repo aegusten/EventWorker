@@ -51,24 +51,6 @@ def reset_password(request):
         return JsonResponse({'success': False, 'message': 'Invalid user type'})
     return JsonResponse({'success': False, 'message': 'Invalid request'}, status=400)
 
-@login_required
-def applicant_dashboard(request):
-    if not hasattr(request.user, 'id_number'):
-        return redirect('org_dashboard')
-
-    query = request.GET.get('q', '')
-    job_type = request.GET.get('job_type', '')
-    jobs = JobPosting.objects.filter(is_active=True)
-    if query:
-        jobs = jobs.filter(title__icontains=query)
-    if job_type:
-        jobs = jobs.filter(job_type=job_type)
-
-    return render(request, 'dashboards/applicant_dashboard.html', {
-        'jobs': jobs,
-        'search_query': query,
-        'selected_job_type': job_type
-    })
 
 @login_required
 def profile_view(request):
