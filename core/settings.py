@@ -21,10 +21,11 @@ INSTALLED_APPS = [
     'crispy_bootstrap5',
     'users',
     'backend',
+    'core',  
 ]
 
 AUTHENTICATION_BACKENDS = [
-    'users.backends.ApplicantOrOrgBackend',
+    'core.backends.ApplicantOrOrgBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
 
