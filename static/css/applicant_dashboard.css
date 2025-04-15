@@ -1,0 +1,136 @@
+:root {
+  --bg-main: #d0d6d6;
+  --bg-secondary: #86b9b0;
+  --btn-main: #4c7273;
+  --btn-hover: #365c5c;
+  --text-main: #041421;
+  --text-subtle: #042630;
+  --white: #ffffff;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+}
+
+.main-header {
+  background-color: var(--bg-secondary);
+  padding: 1.2rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--white);
+}
+
+.nav-bar {
+  display: flex;
+  gap: 1.2rem;
+}
+
+.nav-bar a {
+  color: var(--white);
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.nav-bar a:hover {
+  color: var(--btn-hover);
+}
+
+.search-filter-section {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 2rem;
+  background-color: var(--white);
+  border-bottom: 2px solid var(--btn-main);
+}
+
+.search-filter-section input,
+.search-filter-section select,
+.search-filter-section button {
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--btn-main);
+}
+
+.search-filter-section button {
+  background-color: var(--btn-main);
+  color: var(--white);
+  cursor: pointer;
+}
+
+.search-filter-section button:hover {
+  background-color: var(--btn-hover);
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  gap: 2rem;
+  padding: 2rem;
+}
+
+.job-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.job-card {
+  background-color: var(--white);
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(76, 114, 115, 0.15);
+  border-left: 5px solid var(--btn-main);
+}
+
+.apply-btn {
+  display: inline-block;
+  margin-top: 1rem;
+  background-color: var(--btn-main);
+  color: var(--white);
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.apply-btn:hover {
+  background-color: var(--btn-hover);
+}
+
+.sidebar {
+  background-color: var(--white);
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.sidebar h4 {
+  margin-bottom: 1rem;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.sidebar ul li {
+  margin-bottom: 0.5rem;
+}
+
+.sidebar ul li a {
+  text-decoration: none;
+  color: var(--btn-main);
+}
+
+.main-footer {
+  text-align: center;
+  padding: 1rem;
+  background-color: var(--bg-secondary);
+  color: var(--white);
+  margin-top: 2rem;
+}
