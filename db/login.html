@@ -1,0 +1,414 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="{% static 'css/extra.css' %}" rel="stylesheet">
+</head>
+<body>
+<div class="login-wrapper">
+  <div class="login-content">
+    <div class="login-card">
+      <h2 class="text-center mb-4">Login</h2>
+      <form method="post" action="{% url 'accounts:login' %}">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger">
+            {{ form.non_field_errors }}
+          </div>
+        {% endif %}
+        {% if form.fields.id_number %}
+          <div class="mb-3">
+            {{ form.id_number|as_crispy_field }}
+            {% for error in form.id_number.errors %}
+              <div class="text-danger small">{{ error }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+        {% if form.fields.password %}
+          <div class="mb-3">
+            {{ form.password|as_crispy_field }}
+            {% for error in form.password.errors %}
+              <div class="text-danger small">{{ error }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+        <button type="submit" class="btn btn-primary w-100">Login</button>
+      </form>
+      <div class="d-flex justify-content-between mt-3">
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          data-bs-toggle="modal"
+          data-bs-target="#registerModal"
+        >
+          Register
+        </button>
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          data-bs-toggle="modal"
+          data-bs-target="#forgotPassModal"
+        >
+          Forgot Password?
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="login-footer text-center p-3">
+    © 2025 MyHabitTracker. All rights reserved.
+  </footer>
+</div>
+
+<div class="modal fade" id="registerModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content rounded-4 shadow-sm" style="background-color: var(--card-bg); color: var(--text-color);">
+      <form method="post" action="{% url 'accounts:register' %}">
+        {% csrf_token %}
+        <div class="modal-header border-bottom-0">
+          <h4 class="modal-title w-100 fw-semibold">Sign Up</h4>
+          <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body px-4">
+          {% if register_form.non_field_errors %}
+            <div class="alert alert-danger">
+              {{ register_form.non_field_errors }}
+            </div>
+          {% endif %}
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              {{ register_form.id_number|as_crispy_field }}
+              {% for error in register_form.id_number.errors %}
+                <div class="text-danger small">{{ error }}</div>
+              {% endfor %}
+            </div>
+            <div class="col-md-6">
+              {{ register_form.full_name|as_crispy_field }}
+              {% for error in register_form.full_name.errors %}
+                <div class="text-danger small">{{ error }}</div>
+              {% endfor %}
+            </div>
+            <div class="col-md-6">
+              {{ register_form.phone_number|as_crispy_field }}
+              {% for error in register_form.phone_number.errors %}
+                <div class="text-danger small">{{ error }}</div>
+              {% endfor %}
+            </div>
+            <div class="col-md-6">
+              {{ register_form.age|as_crispy_field }}
+              {% for error in register_form.age.errors %}
+                <div class="text-danger small">{{ error }}</div>
+              {% endfor %}
+            </div>
+            <div class="col-md-6">
+              {{ register_form.password1|as_crispy_field }}
+              {% for error in register_form.password1.errors %}
+                <div class="text-danger small">{{ error }}</div>
+              {% endfor %}
+            </div>
+            <div class="col-md-6">
+              {{ register_form.password2|as_crispy_field }}
+              {% for error in register_form.password2.errors %}
+                <div class="text-danger small">{{ error }}</div>
+              {% endfor %}
+              <div id="pwMatchErr" class="text-danger small d-none mt-1"></div>
+            </div>
+          </div>
+          <hr class="mb-4">
+          <div class="row g-3 mb-3 align-items-center">
+            <div class="col-md-6">
+              {{ register_form.question1_subquestion }}
+            </div>
+            <div class="col-md-6">
+              {{ register_form.answer1|as_crispy_field }}
+            </div>
+          </div>
+          <div class="row g-3 mb-3 align-items-center">
+            <div class="col-md-6">
+              {{ register_form.question2_subquestion }}
+            </div>
+            <div class="col-md-6">
+              {{ register_form.answer2|as_crispy_field }}
+            </div>
+          </div>
+          <div class="row g-3 mb-3 align-items-center">
+            <div class="col-md-6">
+              {{ register_form.question3_subquestion }}
+            </div>
+            <div class="col-md-6">
+              {{ register_form.answer3|as_crispy_field }}
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer border-top-0 px-4">
+          <button type="submit" class="btn btn-success w-100 rounded-pill">Register</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="forgotPassModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 shadow-sm" style="background-color: var(--card-bg); color: var(--text-color);">
+      <div class="modal-header border-0 d-block text-center">
+        <h5 class="modal-title w-100 fw-semibold">Reset Password</h5>
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body px-4">
+        <div id="fpStep1">
+          <label class="form-label">Enter Your ID Number</label>
+          <input type="text" class="form-control mb-3" id="fpIdNumber" placeholder="ID Number">
+          <p class="fw-bold mt-3 mb-2">How do you want to reset?</p>
+          <div class="list-group">
+            <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" id="fpSecBtn">
+              I forgot my old password
+              <i class="bi bi-arrow-right"></i>
+            </button>
+          </div>
+          <div class="text-danger small mt-2" id="fpError1"></div>
+        </div>
+        <div id="fpStep2Sec" class="d-none">
+          <p class="fw-bold">Answer your security questions:</p>
+          <div id="fpQuestionsContainer"></div>
+          <div class="text-danger small" id="fpErrorSec"></div>
+          <div class="d-flex justify-content-between mt-4">
+            <button type="button" class="btn btn-secondary" id="fpBack1b">Back</button>
+            <button type="button" class="btn btn-primary" id="fpVerifySecBtn">Next</button>
+          </div>
+        </div>
+        <div id="fpStep3" class="d-none">
+          <label class="form-label">New Password</label>
+          <input type="password" class="form-control mb-3" id="fpNewPw1" placeholder="New password">
+          <label class="form-label">Confirm New Password</label>
+          <input type="password" class="form-control mb-3" id="fpNewPw2" placeholder="Confirm password">
+          <div class="text-danger small" id="fpError3"></div>
+          <div class="d-flex justify-content-between mt-4">
+            <button type="button" class="btn btn-secondary" id="fpBack2">Back</button>
+            <button type="button" class="btn btn-success" id="fpUpdatePwBtn">Update Password</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+  var registerForm = document.getElementById("registerModal");
+  var p1 = document.getElementById("id_password1");
+  var p2 = document.getElementById("id_password2");
+  var matchErr = document.getElementById("pwMatchErr");
+  function checkMatch(){
+    if(p1 && p2 && p1.value && p2.value && p1.value !== p2.value){
+      matchErr.classList.remove("d-none");
+      matchErr.textContent = "Passwords do not match.";
+    } else {
+      matchErr.classList.add("d-none");
+      matchErr.textContent = "";
+    }
+  }
+  if(p1 && p2){
+    p1.addEventListener("input", checkMatch);
+    p2.addEventListener("input", checkMatch);
+  }
+
+  var fpStep1 = document.getElementById("fpStep1");
+  var fpStep2Sec = document.getElementById("fpStep2Sec");
+  var fpStep3 = document.getElementById("fpStep3");
+  var fpIdNumber = document.getElementById("fpIdNumber");
+  var fpError1 = document.getElementById("fpError1");
+  var fpErrorSec = document.getElementById("fpErrorSec");
+  var fpError3 = document.getElementById("fpError3");
+  var fpSecBtn = document.getElementById("fpSecBtn");
+  var fpBack1b = document.getElementById("fpBack1b");
+  var fpVerifySecBtn = document.getElementById("fpVerifySecBtn");
+  var fpBack2 = document.getElementById("fpBack2");
+  var fpUpdatePwBtn = document.getElementById("fpUpdatePwBtn");
+  var fpQuestionsContainer = document.getElementById("fpQuestionsContainer");
+
+  if(fpSecBtn){
+    fpSecBtn.onclick=function(){
+      if(!fpIdNumber.value.trim()){
+        fpError1.textContent="Please enter ID Number first.";
+        return;
+      }
+      fpError1.textContent="";
+      fpStep1.classList.add("d-none");
+      fpStep2Sec.classList.remove("d-none");
+      fetch("{% url 'accounts:get_security_questions' %}",{
+        method:"POST",
+        headers:{
+          "X-CSRFToken":"{{ csrf_token }}",
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify({id_number:fpIdNumber.value.trim()})
+      }).then(res=>res.json())
+      .then(data=>{
+        if(data.questions&&data.questions.length>0){
+          fpQuestionsContainer.innerHTML="";
+          data.questions.forEach(q=>{
+            fpQuestionsContainer.innerHTML+=`
+              <div class="mb-3">
+                <label class="form-label">${q.text}</label>
+                <input type="text" class="form-control fpSecAnswer" data-id="${q.id}" placeholder="Your answer">
+              </div>
+            `;
+          });
+        }else{
+          fpErrorSec.textContent="No security questions found for this user.";
+        }
+      })
+      .catch(()=>{
+        fpErrorSec.textContent="Error fetching security questions.";
+      });
+    };
+  }
+  if(fpBack1b){
+    fpBack1b.onclick=function(){
+      fpStep2Sec.classList.add("d-none");
+      fpStep1.classList.remove("d-none");
+      fpQuestionsContainer.innerHTML="";
+      fpErrorSec.textContent="";
+    };
+  }
+  if(fpVerifySecBtn){
+    fpVerifySecBtn.onclick=function(){
+      fpErrorSec.textContent="";
+      var answers={};
+      document.querySelectorAll(".fpSecAnswer").forEach(function(el){
+        answers[el.dataset.id]=el.value.trim();
+      });
+      answers["id_number"]=fpIdNumber.value.trim();
+      fetch("{% url 'accounts:public_verify_security_answers' %}",{
+        method:"POST",
+        headers:{
+          "X-CSRFToken":"{{ csrf_token }}",
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify(answers)
+      })
+      .then(r=>r.json())
+      .then(d=>{
+        if(d.valid){
+          fpStep2Sec.classList.add("d-none");
+          fpStep3.classList.remove("d-none");
+        }else{
+          fpErrorSec.textContent="Security answers didn’t match. Please try again.";
+        }
+      })
+      .catch(function(){
+        fpErrorSec.textContent="Server error. Please try again.";
+      });
+    };
+  }
+  if (fpUpdatePwBtn) {
+    fpUpdatePwBtn.onclick = function() {
+      fpError3.textContent = "";
+      const pw1 = document.getElementById("fpNewPw1").value.trim();
+      const pw2 = document.getElementById("fpNewPw2").value.trim();
+      const idNum = fpIdNumber.value.trim();
+  
+      if (!pw1 || !pw2) {
+        fpError3.textContent = "Please enter and confirm your new password.";
+        return;
+      }
+      if (pw1 !== pw2) {
+        fpError3.textContent = "Passwords do not match.";
+        return;
+      }
+  
+      const payload = {
+        id_number: idNum,
+        verify: true,
+        new_password1: pw1,
+        new_password2: pw2
+      };
+  
+      fetch("{% url 'accounts:public_forgot_password_view' %}", {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": "{{ csrf_token }}",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.ok) {
+          alert("Password updated successfully!");
+          location.reload();
+        } else {
+          if (data.errors) {
+            // Show Django form errors
+            const errObj = data.errors;
+            if (errObj.new_password1) {
+              fpError3.textContent = errObj.new_password1.join(", ");
+            } else if (errObj.new_password2) {
+              fpError3.textContent = errObj.new_password2.join(", ");
+            } else {
+              fpError3.textContent = "Error updating password.";
+            }
+          } else {
+            fpError3.textContent = "Error updating password.";
+          }
+        }
+      })
+      .catch(() => {
+        fpError3.textContent = "Server error. Please try again.";
+      });
+    };
+  }
+  
+  if(fpBack2){
+    fpBack2.onclick=function(){
+      fpStep3.classList.add("d-none");
+      fpStep2Sec.classList.remove("d-none");
+      fpError3.textContent="";
+    };
+  }
+});
+</script>
+<style>
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: var(--body-bg);
+  color: var(--text-color);
+  overflow-x: hidden;
+}
+.login-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+.login-content {
+  flex: 1 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.login-card {
+  background-color: var(--card-bg, #fff);
+  color: var(--text-color);
+  border: 1px solid var(--card-border, #ccc);
+  border-radius: 0.3rem;
+  width: 100%;
+  max-width: 500px;
+  padding: 2rem;
+}
+.login-footer {
+  flex-shrink: 0;
+}
+</style>
+</body>
+</html>

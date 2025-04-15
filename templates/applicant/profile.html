@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/profile.css' %}">
+
+<div class="profile-page">
+  <header class="main-header">
+    {% include "applicant/applicant_header.html" %}
+  </header>
+
+  <div class="profile-container">
+    <form method="POST" enctype="multipart/form-data" class="profile-card">
+      {% csrf_token %}
+      <div class="profile-header">
+        <h2>Applicant Profile</h2>
+        <button type="submit" class="save-btn">Save</button>
+      </div>
+      {% if messages %}
+      <div class="messages">
+          {% for message in messages %}
+          <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+              {{ message }}
+          </div>
+          {% endfor %}
+      </div>
+      {% endif %}
+      <!-- Display-only Section -->
+      <div class="profile-section">
+        <h4>Personal Info</h4>
+        <div class="profile-grid">
+          <div>
+            <label>Full Name</label>
+            <p>{{ applicant.full_name }}</p>
+          </div>
+          <div>
+            <label>ID Number</label>
+            <p>{{ applicant.id_number }}</p>
+          </div>
+          <div>
+            <label>Education</label>
+            <p>{{ applicant.education }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Editable Contact Info -->
+      <div class="profile-section">
+        <h4>Contact Info</h4>
+        <div class="profile-grid">
+          <div>
+            <label>Email</label>
+            <input type="email" name="email" value="{{ applicant.email }}">
+          </div>
+          <div>
+            <label>Phone</label>
+            <input type="text" name="phone_number" value="{{ applicant.phone_number }}">
+          </div>
+          <div>
+            <label>Country</label>
+            <input type="text" name="country" value="{{ applicant.country }}">
+          </div>
+          <div>
+            <label>Address</label>
+            <input type="text" name="address" value="{{ applicant.address }}">
+          </div>
+        </div>
+      </div>
+
+      <!-- Editable Career Section -->
+      <div class="profile-section">
+        <h4>Career Details</h4>
+        <div class="profile-grid">
+          <div>
+            <label>Skills</label>
+            <input type="text" name="skills" value="{{ applicant.skills }}">
+          </div>
+          <div>
+            <label>Preferred Location</label>
+            <input type="text" name="preferred_location" value="{{ applicant.preferred_location }}">
+          </div>
+          <div>
+            <label>Availability</label>
+            <select name="availability">
+              <option value="full-time" {% if applicant.availability == "full-time" %}selected{% endif %}>Full-time</option>
+              <option value="part-time" {% if applicant.availability == "part-time" %}selected{% endif %}>Part-time</option>
+              <option value="volunteer" {% if applicant.availability == "volunteer" %}selected{% endif %}>Volunteer</option>
+            </select>
+          </div>
+          <div>
+            <label>Interested In</label>
+            <select name="job_type_interest">
+              <option value="full-time" {% if applicant.job_type_interest == "full-time" %}selected{% endif %}>Full-time</option>
+              <option value="part-time" {% if applicant.job_type_interest == "part-time" %}selected{% endif %}>Part-time</option>
+              <option value="volunteer" {% if applicant.job_type_interest == "volunteer" %}selected{% endif %}>Volunteer</option>
+            </select>
+          </div>
+          <div>
+            <label>CV</label>
+            <input type="file" name="cv">
+            {% if applicant.cv %}
+              <a href="{{ applicant.cv.url }}" target="_blank" class="view-link">View CV</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Security Section -->
+      <div class="profile-section">
+        <h4>Security</h4>
+        <a href="#" id="openPasswordModal" class="action-link">Change Password</a>
+        {% include 'modals/change_password_modal.html' %}
+        <a href="{% url 'change_security_phrase' %}" class="action-link">Update Security Phrase</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
