@@ -1,44 +1,47 @@
-{% extends "base.html" %}
+{% extends "organization/org_base.html" %}
 {% load static %}
 
 {% block content %}
+<section class="job-section">
 
-  <h2>Organization Dashboard</h2>
-  <!-- Action links for the organization -->
-  <div class="org-actions">
-    <a href="{% url 'organization_dashboard' %}">View Postings</a>
-    <a href="{% url 'org_post_new' %}">Post New Job</a>
+  <h2>Your Job Postings</h2>
+
+  <!-- 👇 Modal button + modal included here -->
+  {% include "organization/job_post_modal.html" %}
+
+  <div class="table-responsive">
+    <table class="table table-bordered jobs-table">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Type</th>
+          <th>Location</th>
+          <th>Deadline</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for job in jobs %}
+        <tr>
+          <td>{{ job.title }}</td>
+          <td>{{ job.job_type }}</td>
+          <td>{{ job.location }}</td>
+          <td>{{ job.deadline }}</td>
+          <td>
+            <a href="{% url 'view_applicants' job.id %}" class="btn btn-sm btn-outline-primary">Applicants</a>
+            <a href="{% url 'shortlist_job' job.id %}" class="btn btn-sm btn-outline-secondary">Shortlist</a>
+            <a href="{% url 'message_applicants' job.id %}" class="btn btn-sm btn-outline-info">Message</a>
+            <form action="{% url 'delete_job' job.id %}" method="post" class="d-inline">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5"><em>No active job postings.</em></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
-
-  <!-- List of the organization's active job postings -->
-  <h3>Your Job Postings</h3>
-  <table class="jobs-table">
-    <thead>
-      <tr>
-        <th>Title</th><th>Type</th><th>Location</th><th>Deadline</th><th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-    {% for job in jobs %}
-      <tr>
-        <td>{{ job.title }}</td>
-        <td>{{ job.job_type }}</td>
-        <td>{{ job.location }}</td>
-        <td>{{ job.deadline }}</td>
-        <td>
-          <a href="{% url 'view_applicants' job.id %}">View Applicants</a> | 
-          <a href="{% url 'shortlist_job' job.id %}">Shortlist</a> | 
-          <a href="{% url 'message_applicants' job.id %}">Message</a> | 
-          <form action="{% url 'delete_job' job.id %}" method="post" style="display:inline;">
-            {% csrf_token %}
-            <button type="submit" class="link-btn">Delete</button>
-          </form>
-        </td>
-      </tr>
-    {% empty %}
-      <tr><td colspan="5"><em>No active job postings.</em></td></tr>
-    {% endfor %}
-    </tbody>
-  </table>
-
+</section>
 {% endblock %}

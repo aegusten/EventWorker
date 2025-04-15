@@ -26,6 +26,7 @@ urlpatterns = [
     path('dashboard/organization/', organization_dashboard, name='organization_dashboard'),
     path('dashboard/applicant/', applicant_dashboard, name='applicant_dashboard'),
     path('jobs/', include('backend.urls')),
+     path('organization/', include('backend.urls')),
 ]
 
 if settings.DEBUG:
