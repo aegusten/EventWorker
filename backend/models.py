@@ -18,6 +18,7 @@ class JobPosting(models.Model):
     requirements = models.TextField()
     deadline = models.DateField()
     description = models.TextField()
+    image = models.ImageField(upload_to='static/jobs/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
 
@@ -57,7 +58,8 @@ class Feedback(models.Model):
     applicant = models.ForeignKey(Applicant, on_delete=models.CASCADE)
     job = models.ForeignKey(JobPosting, on_delete=models.CASCADE)
     comment = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True) #Fk job post id
+    created_at = models.DateTimeField(auto_now_add=True) 
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return f"Feedback for {self.job.title} by {self.applicant.id_number}"

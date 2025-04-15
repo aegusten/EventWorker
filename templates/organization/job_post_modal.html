@@ -1,0 +1,66 @@
+{% load static %}
+{% load form_tags %}    
+
+<!-- Button to trigger modal -->
+<button class="btn btn-primary mb-4" data-bs-toggle="modal" data-bs-target="#postJobModal">
+  <i class="bi bi-plus-circle"></i> Post New Job
+</button>
+
+<!-- Post Job Modal -->
+<div class="modal fade" id="postJobModal" tabindex="-1" aria-labelledby="postJobModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <form method="POST" enctype="multipart/form-data" action="{% url 'organization_dashboard' %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="postJobModalLabel">Post a New Job</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body px-4 py-3">
+          {{ form.non_field_errors }}
+
+          <div class="row g-4">
+            <div class="col-md-6">
+              <label class="form-label">{{ form.title.label }}</label>
+              {{ form.title|add_class:"form-control" }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">{{ form.job_type.label }}</label>
+              {{ form.job_type|add_class:"form-select" }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">{{ form.salary.label }}</label>
+              {{ form.salary|add_class:"form-control" }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">{{ form.location.label }}</label>
+              {{ form.location|add_class:"form-control" }}
+            </div>
+            <div class="col-12">
+              <label class="form-label">{{ form.requirements.label }}</label>
+              {{ form.requirements|add_class:"form-control" }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">{{ form.deadline.label }}</label>
+              {{ form.deadline|add_class:"form-control" }}
+            </div>
+            <div class="col-12">
+              <label class="form-label">{{ form.description.label }}</label>
+              {{ form.description|add_class:"form-control" }}
+            </div>
+            <div class="col-12">
+              <label class="form-label">{{ form.image.label }}</label>
+              {{ form.image|add_class:"form-control" }}
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer px-4">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-success">Create Job</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

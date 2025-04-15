@@ -1,0 +1,188 @@
+:root {
+    --bg-main: #d6dddd;
+    --bg-secondary: #88b4ad;
+    --white: #ffffff;
+    --btn-main: #2c5d63;
+    --btn-hover: #1c3f45;
+    --text-main: #222;
+    --text-subtle: #555;
+    --primary: #497c7d;
+    --primary-dark: #2c4e4e;
+  }
+  
+  /* Layout wrapper */
+  .org-dashboard-layout {
+    display: flex;
+    flex-direction: row;
+    min-height: 100vh;
+    background-color: var(--bg-main);
+  }
+  
+  /* Main content */
+  .main-content {
+    flex: 1;
+    padding: 2rem;
+    margin-right: 240px; /* leave space for expanded sidebar */
+  }
+  
+  
+  /* Header */
+  .dashboard-header {
+    background-color: var(--bg-secondary);
+    color: var(--white);
+    padding: 1.8rem 2rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between; /* changed from center */
+    align-items: center;
+  }
+  
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .header-left h1 {
+    font-size: 2.7rem;
+    margin: 0;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+  }
+  
+  .logo-icon {
+    height: 55px;
+  }
+
+
+  
+  
+  /* Sidebar collapsing behavior */
+  .sidebar {
+    background-color: var(--bg-secondary);
+    color: var(--white);
+    width: 60px;
+    transition: width 0.6s ease;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 2rem;
+    z-index: 999;
+    height: 100vh;
+    position: fixed;
+    right: 0;
+    top: 0;
+    border-radius: 12px 0 0 12px;
+  }
+  
+  .sidebar:hover {
+    width: 260px;
+  }
+  
+  .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+    padding: 0 1.2rem;
+  }
+  
+  .sidebar-nav a {
+    color: var(--white);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1.2rem; /* 👈 Bigger text */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    transition: background-color 0.4s ease, padding 0.4s ease;
+  }
+  
+  .sidebar-nav a i {
+    font-size: 1.5rem; /* 👈 Bigger icons */
+  }
+  
+  .sidebar-nav a:hover {
+    background-color: var(--btn-hover);
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+  }
+  
+  /* Make the "three-line block" bigger */
+  .logo-title {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    cursor: pointer;
+  }
+  
+  .sidebar:hover .logo-title {
+    font-size: 2.4rem;
+  }
+  
+  
+  .logout-link {
+    color: #ffdede;
+  }
+  
+  /* Job Table */
+  .job-section h2 {
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    color: var(--primary-dark);
+  }
+  
+  .jobs-table {
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  
+  .table th {
+    background-color: var(--primary);
+    color: var(--white);
+  }
+
+  .modal-content {
+    background-color: var(--white);
+    border-radius: 10px;
+    padding: 1rem;
+  }
+  
+  .modal-header h5 {
+    color: var(--primary-dark);
+  }
+  
+  .sidebar-nav a,
+.sidebar-link {
+  all: unset;
+  color: var(--white);
+  font-weight: 700;
+  font-size: 1.2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.5rem 1rem;  /* match padding here */
+  width: 100%;
+  transition: background-color 0.4s ease, padding 0.4s ease;
+  text-decoration: none;
+}
+
+.sidebar-nav a i,
+.sidebar-link i {
+  font-size: 1.5rem;
+}
+
+.sidebar-nav a:hover,
+.sidebar-link:hover {
+  background-color: var(--btn-hover);
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+}
+  

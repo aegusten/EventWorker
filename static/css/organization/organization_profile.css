@@ -1,0 +1,23 @@
+.profile-section {
+    background-color: var(--white);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  }
+  
+  .section-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    margin-bottom: 1.5rem;
+  }
+  
+  .profile-group {
+    margin-bottom: 1.5rem;
+  }
+  
+  input[disabled], textarea[disabled] {
+    background-color: #e9ecef;
+    color: #6c757d;
+  }
+  

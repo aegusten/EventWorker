@@ -1,18 +1,12 @@
-from django.contrib import admin
 from django.urls import path
-from .views import (
-    post_new_job, 
-    view_applicants, 
-    shortlist_job, 
-    message_applicants, 
-    delete_job,
-)
+from . import views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('new/', post_new_job, name='org_post_new'),
-    path('<int:job_id>/applicants/', view_applicants, name='view_applicants'),
-    path('<int:job_id>/shortlist/', shortlist_job, name='shortlist_job'),
-    path('<int:job_id>/message/', message_applicants, name='message_applicants'),
-    path('<int:job_id>/delete/', delete_job, name='delete_job'),
+    path('dashboard/', views.organization_dashboard, name='organization_dashboard'),
+    path('profile/', views.organization_profile_view, name='organization_profile_view'),
+    path('job/<int:job_id>/applicants/', views.view_applicants, name='view_applicants'),
+    path('job/<int:job_id>/shortlist/', views.shortlist_job, name='shortlist_job'),
+    path('job/<int:job_id>/message/', views.message_applicants, name='message_applicants'),
+    path('job/<int:job_id>/delete/', views.delete_job, name='delete_job'),
+    path('chat/', views.chat_view, name='chat_view'),
 ]
