@@ -140,3 +140,15 @@
 .org-wrapper .logout-link {
   color: #ffdede;
 }
+
+.org-wrapper .card {
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #ccc;
+}
+
+.org-wrapper .card-img-top {
+  object-fit: cover;
+  height: 180px;
+}
+

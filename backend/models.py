@@ -28,7 +28,7 @@ class JobPosting(models.Model):
 
 class JobApplication(models.Model):
     applicant = models.ForeignKey(Applicant, on_delete=models.CASCADE)
-    job = models.ForeignKey(JobPosting, on_delete=models.CASCADE)
+    job = models.ForeignKey(JobPosting, on_delete=models.CASCADE, related_name='applications')  # 👈 FIX HERE
     status = models.CharField(max_length=50, choices=[
         ('pending', 'Pending'),
         ('accepted', 'Accepted'),
