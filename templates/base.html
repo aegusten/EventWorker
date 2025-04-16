@@ -4,31 +4,10 @@
 <head>
   <meta charset="UTF-8">
   <title>EventWork Connect</title>
-<<<<<<< HEAD
   <link rel="stylesheet" href="{% static 'css/theme.css' %}">
   <link rel="stylesheet" href="{% static 'css/applicant_dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'css/catalog.css' %}">
-=======
 
-  <!-- Core Theme -->
-  <link rel="stylesheet" href="{% static 'css/theme.css' %}">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-  <!-- Optional: Page-specific CSS -->
-  {% block extra_css %}
-    {% if user.is_authenticated and user.organization %}
-      <link rel="stylesheet" href="{% static 'css/organization_dashboard.css' %}">
-    {% elif user.is_authenticated and user.applicant %}
-      <link rel="stylesheet" href="{% static 'css/applicant_dashboard.css' %}">
-    {% endif %}
-  {% endblock %}
->>>>>>> 0f33c97 (Rebase1DAN)
-</head>
-
-<body>
-
-<<<<<<< HEAD
   <main>
     {% block content %}
       {% if user.is_authenticated %}
@@ -42,15 +21,12 @@
       {% endif %}
     {% endblock %}
   </main>
-=======
-  {% block content %}
-  <!-- Content will be provided by each individual page template -->
-  {% endblock %}
->>>>>>> 0f33c97 (Rebase1DAN)
 
   <footer>
     <p>&copy; 2025 EventWork Connect. All rights reserved.</p>
   </footer>
+  
   <script src="{% static 'js/profile.js' %}"></script>
+
 </body>
 </html>
