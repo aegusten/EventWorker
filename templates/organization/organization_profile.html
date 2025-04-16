@@ -1,104 +1,106 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block extra_styles %}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="{% static 'css/organization_profile.css' %}">
+{% endblock %}
+
+{% block extra_scripts %}
+  {{ block.super }}
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}
+
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/organization_profile.css' %}">
-
-<div class="org-dashboard-layout">
-  {% include 'organization/org_sidebar.html' %}
-
-  <main class="main-content">
-    {% include 'organization/org_header.html' %}
-
-    <form method="POST" class="profile-form">
-      {% csrf_token %}
-      <div class="profile-card">
-        <div class="profile-header">
-          <h2>Organization Profile</h2>
-          <button type="submit" class="save-btn">Save</button>
-        </div>
-
-        {% if messages %}
-        <div class="messages">
-          {% for message in messages %}
-          <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-          {% endfor %}
-        </div>
-        {% endif %}
-
-        <div class="form-section">
-          <h4>Organization Details</h4>
-          <div class="form-grid">
-            <div>
-              <label>Company Name</label>
-              <input type="text" name="organization_name" value="{{ organization.organization_name }}" required>
+<div class="org-wrapper">
+  <div class="org-dashboard-layout">
+    {% include 'organization/org_sidebar.html' %}
+    <main class="main-content">
+      {% include 'organization/org_header.html' %}
+      <form method="POST" class="profile-form">
+        {% csrf_token %}
+        <div class="profile-card">
+          <div class="profile-header">
+            <h2>Organization Profile</h2>
+            <button type="submit" class="save-btn">Save</button>
+          </div>
+          {% if messages %}
+          <div class="messages">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+          </div>
+          {% endif %}
+          <div class="form-section">
+            <h4>Organization Details</h4>
+            <div class="form-grid">
+              <div>
+                <label>Company Name</label>
+                <input type="text" name="organization_name" value="{{ organization.organization_name }}" required>
+              </div>
+              <div>
+                <label>License Number</label>
+                <input type="text" name="license_number" value="{{ organization.license_number }}" readonly>
+              </div>
+              <div>
+                <label>Email</label>
+                <input type="email" name="organization_email" value="{{ organization.organization_email }}">
+              </div>
+              <div>
+                <label>Phone</label>
+                <input type="text" name="organization_phone" value="{{ organization.organization_phone }}">
+              </div>
+              <div>
+                <label>Location</label>
+                <input type="text" name="location" value="{{ organization.location }}">
+              </div>
+              <div>
+                <label>Establishment Date</label>
+                <input type="date" name="establishment_date" value="{{ organization.establishment_date|date:'Y-m-d' }}">
+              </div>
             </div>
-            <div>
-              <label>License Number</label>
-              <input type="text" name="license_number" value="{{ organization.license_number }}" readonly>
+          </div>
+          <div class="form-section">
+            <h4>Sector & Company Type</h4>
+            <div class="form-grid">
+              <div>
+                <label>Sector</label>
+                <select name="sector">
+                  {% for value, label in sector_choices %}
+                  <option value="{{ value }}" {% if organization.sector == value %}selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div>
+                <label>Company Type</label>
+                <select name="company_type">
+                  {% for value, label in company_type_choices %}
+                  <option value="{{ value }}" {% if organization.company_type == value %}selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
+                </select>
+              </div>
             </div>
-            <div>
-              <label>Email</label>
-              <input type="email" name="organization_email" value="{{ organization.organization_email }}">
-            </div>
-            <div>
-              <label>Phone</label>
-              <input type="text" name="organization_phone" value="{{ organization.organization_phone }}">
-            </div>
-            <div>
-              <label>Location</label>
-              <input type="text" name="location" value="{{ organization.location }}">
-            </div>
-            <div>
-              <label>Establishment Date</label>
-              <input type="date" name="establishment_date" value="{{ organization.establishment_date|date:'Y-m-d' }}">
+          </div>
+          <div class="form-section">
+            <h4>Achievements</h4>
+            <textarea name="achievements" rows="3">{{ organization.achievements }}</textarea>
+          </div>
+          <div class="form-section">
+            <h4>Security</h4>
+            <div class="form-grid">
+              <div>
+                <label>Password</label>
+                <input type="password" name="password" placeholder="New password (leave blank to keep)">
+              </div>
+              <div>
+                <label>Security Phrase</label>
+                <input type="text" name="security_phrase" value="{{ organization.security_phrase }}">
+              </div>
             </div>
           </div>
         </div>
-
-        <div class="form-section">
-          <h4>Sector & Company Type</h4>
-          <div class="form-grid">
-            <div>
-              <label>Sector</label>
-              <select name="sector">
-                {% for value, label in sector_choices %}
-                <option value="{{ value }}" {% if organization.sector == value %}selected{% endif %}>{{ label }}</option>
-                {% endfor %}
-              </select>
-            </div>
-            <div>
-              <label>Company Type</label>
-              <select name="company_type">
-                {% for value, label in company_type_choices %}
-                <option value="{{ value }}" {% if organization.company_type == value %}selected{% endif %}>{{ label }}</option>
-                {% endfor %}
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div class="form-section">
-          <h4>Achievements</h4>
-          <textarea name="achievements" rows="3">{{ organization.achievements }}</textarea>
-        </div>
-
-        <div class="form-section">
-          <h4>Security</h4>
-          <div class="form-grid">
-            <div>
-              <label>Password</label>
-              <input type="password" name="password" placeholder="New password (leave blank to keep)">
-            </div>
-            <div>
-              <label>Security Phrase</label>
-              <input type="text" name="security_phrase" value="{{ organization.security_phrase }}">
-            </div>
-          </div>
-        </div>
-      </div>
-    </form>
-  </main>
+      </form>
+    </main>
+  </div>
 </div>
-
 {% endblock %}
