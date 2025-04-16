@@ -105,13 +105,15 @@
         </div>
       </div>
 
-      <!-- Security Section -->
       <div class="profile-section">
         <h4>Security</h4>
-        <a href="#" id="openPasswordModal" class="action-link">Change Password</a>
-        {% include 'modals/change_password_modal.html' %}
-        <a href="{% url 'change_security_phrase' %}" class="action-link">Update Security Phrase</a>
+        <div class="pass-action-buttons">
+          <button id="openPasswordModal" class="pass-sec-btn" type="button">Change Password</button>
+          <button href="#" class="pass-sec-btn">Change Security Questions</button>
+            <button href="#" class="pass-sec-btn">Terminate Account</button>
+        </div>
       </div>
+          
     </form>
   </div>
 </div>

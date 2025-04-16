@@ -50,7 +50,6 @@ def login_view(request):
                 messages.error(request, 'Invalid credentials.')
     return render(request, 'login.html', context)
 
-
 @login_required
 def base_redirect_view(request):
     if hasattr(request.user, 'license_number'):
