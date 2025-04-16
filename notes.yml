@@ -3,12 +3,12 @@ docker-compose up --build
 docker-compose exec web python manage.py migrate
 
 -----------
-users foulder ->
+users folder ->
 docker-compose exec web python manage.py makemigrations users
 docker-compose exec web python manage.py migrate
 
 --------------
-backend foulder ->
+backend folder ->
 docker-compose exec web python manage.py makemigrations backend
 docker-compose exec web python manage.py migrate
 

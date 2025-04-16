@@ -5,4 +5,5 @@ redis
 celery
 crispy-bootstrap5
 gunicorn
-Pillow
+Pillow>=10.0.0
+
