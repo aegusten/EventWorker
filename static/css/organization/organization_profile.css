@@ -1,23 +1,20 @@
-.profile-form {
+.org-wrapper .profile-form {
   max-width: 1000px;
   margin: auto;
 }
-
-.profile-card {
+.org-wrapper .profile-card {
   background: var(--white);
   padding: 2rem;
   border-radius: 12px;
   box-shadow: 0 0 12px rgba(0,0,0,0.05);
 }
-
-.profile-header {
+.org-wrapper .profile-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
 }
-
-.save-btn {
+.org-wrapper .save-btn {
   padding: 0.5rem 1.5rem;
   background: var(--btn-main);
   color: white;
@@ -26,30 +23,27 @@
   font-weight: bold;
   cursor: pointer;
 }
-
-.form-section {
+.org-wrapper .form-section {
   margin-bottom: 2rem;
 }
-
-.form-section h4 {
+.org-wrapper .form-section h4 {
   color: var(--primary-dark);
   margin-bottom: 1rem;
 }
-
-.form-grid {
+.org-wrapper .form-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 1.5rem;
 }
-
-input, select, textarea {
+.org-wrapper input,
+.org-wrapper select,
+.org-wrapper textarea {
   width: 100%;
   padding: 0.7rem 1rem;
   border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 1rem;
 }
-
-textarea {
+.org-wrapper textarea {
   resize: vertical;
 }
