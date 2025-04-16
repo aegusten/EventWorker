@@ -1,3 +1,5 @@
+print(">>> LOADED: core.views ✅")
+
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.csrf import csrf_exempt
@@ -27,19 +29,24 @@ from users.models import (
     OrganizationSecurityAnswer
 )
 
+
 def home_redirect_view(request):
     return redirect('login')
 
 def login_view(request):
     form = LoginForm(request.POST or None)
-    context = {'form': form}
+    context = {
+        'form': form,
+        'security_questions': SecurityQuestion.objects.all().order_by('id') 
+    }
+
     if request.method == 'POST':
         if form.is_valid():
             id_number = form.cleaned_data['id_number']
             password = form.cleaned_data['password']
             user = authenticate(request, username=id_number, password=password)
             if user:
-                login(request, user) 
+                login(request, user)
                 if isinstance(user, Applicant):
                     return redirect('applicant_dashboard')
                 elif isinstance(user, Organization):
@@ -48,7 +55,13 @@ def login_view(request):
                     messages.error(request, "Unrecognized user type.")
             else:
                 messages.error(request, 'Invalid credentials.')
+
     return render(request, 'login.html', context)
+
+
+def logout_view(request):
+    logout(request)
+    return redirect('login')
 
 @login_required
 def base_redirect_view(request):
@@ -136,31 +149,39 @@ def get_security_questions(request):
         id_number = request.GET.get('id_number', '').strip()
         if not id_number:
             return JsonResponse([], safe=False)
+        questions = []
         applicant = Applicant.objects.filter(id_number=id_number).first()
         if applicant:
             answers = applicant.security_answers.all()
+            for ans in answers:
+                print("Received:", ans)
+                questions.append({
+                    "id": ans.question.id,
+                    "question_text": ans.question_text
+                })
         else:
             org = Organization.objects.filter(license_number=id_number).first()
-            if not org:
-                return JsonResponse([], safe=False)
-            answers = org.security_answers.all()
-        questions = []
-        for ans in answers:
-            questions.append({
-                "question_text": ans.question_text
-            })
+            if org:
+                answers = org.security_answers.all()
+                for ans in answers:
+                    questions.append({
+                        "id": ans.question.id,
+                        "question_text": ans.question_text
+                    })
         return JsonResponse(questions, safe=False)
     return JsonResponse({'error': 'Invalid request method'}, status=405)
 
+
 @require_GET
 def get_security_questions_choices(request):
-    qs = SecurityQuestion.objects.all().order_by('id')[:3]
+    qs = SecurityQuestion.objects.all().order_by('id')
     data = []
     for q in qs:
-        data.append({
-            "question_text": q.question_text,
-            "options": [q.option1, q.option2, q.option3]
-        })
+        data.append([
+            {"id": q.id, "text": q.option1},
+            {"id": q.id, "text": q.option2},
+            {"id": q.id, "text": q.option3},
+        ])
     return JsonResponse(data, safe=False)
 
 @csrf_exempt
@@ -170,32 +191,56 @@ def public_verify_security_answers(request):
         id_number = data.get('id_number')
         user_type = data.get('user_type')
         answers = data.get('answers', [])
+
+        print("Incoming ID:", id_number)
+        print("User type:", user_type)
+        print("Answers received from user:", answers)
+
         if user_type == 'applicant':
             user = Applicant.objects.filter(id_number=id_number).first()
             if not user:
+                print("Applicant not found.")
                 return JsonResponse({'valid': False, 'error': 'User not found'}, status=404)
+
             correct = 0
+            print("Stored answers for applicant:")
+            for a in user.security_answers.all():
+                print(f"QID: {a.question.id}, Text: {a.question_text}, Answer: '{a.answer}'")
+
             for ans in answers:
+                question_id = ans.get('question_id')
+                answer = ans.get('answer', '').strip()
+                print(f"Checking submitted answer: QID {question_id}, Answer: '{answer}'")
                 if user.security_answers.filter(
-                    question_text=ans['question'],
-                    answer__iexact=ans['answer']
+                    question__id=question_id,
+                    answer__iexact=answer
                 ).exists():
+                    print("✔ MATCH FOUND")
                     correct += 1
+                else:
+                    print(" No match")
+
             return JsonResponse({'valid': correct >= 2})
+
         elif user_type == 'organization':
             user = Organization.objects.filter(license_number=id_number).first()
             if not user:
                 return JsonResponse({'valid': False, 'error': 'User not found'}, status=404)
+
             correct = 0
             for ans in answers:
+                question = ans.get('question')
+                answer = ans.get('answer', '').strip()
                 if user.security_answers.filter(
-                    question_text=ans['question'],
-                    answer__iexact=ans['answer']
+                    question_text=question,
+                    answer__iexact=answer
                 ).exists():
                     correct += 1
             return JsonResponse({'valid': correct >= 2})
+
         return JsonResponse({'valid': False, 'error': 'Invalid user type'})
     return JsonResponse({'valid': False, 'error': 'Invalid request'}, status=400)
+
 
 def check_uniqueness(request):
     id_code = request.GET.get("id_code")
@@ -222,6 +267,129 @@ def check_uniqueness(request):
         return JsonResponse(response)
     return JsonResponse({"error": "Invalid request"}, status=400)
 
-def logout_view(request):
-    logout(request)
-    return redirect('login')
+@csrf_exempt
+@login_required
+def update_security_questions(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Invalid method'}, status=405)
+
+    data = json.loads(request.body)
+    questions = data.get('questions', [])
+
+    print("Incoming security question update request")
+    print("Question count:", len(questions))
+
+    if len(questions) < 2:
+        return JsonResponse({'success': False, 'message': 'At least 2 questions required'}, status=400)
+
+    if hasattr(request.user, 'id_number'):
+        user = request.user
+        print("User type: Applicant")
+        AnswerModel = ApplicantSecurityAnswer
+        AnswerModel.objects.filter(applicant=user).delete()
+    elif hasattr(request.user, 'license_number'):
+        user = request.user
+        print("User type: Organization")
+        AnswerModel = OrganizationSecurityAnswer
+        AnswerModel.objects.filter(organization=user).delete()
+    else:
+        print("User type: Unknown")
+        return JsonResponse({'success': False, 'message': 'Unauthorized'}, status=403)
+
+    for q in questions:
+        raw_value = q.get('question_id')
+        answer = q.get('answer', '').strip()
+        
+        if not raw_value or not answer:
+            continue
+
+        try:
+            question_id, question_text = raw_value.split("|", 1)
+            question_obj = SecurityQuestion.objects.get(id=int(question_id))
+
+            if hasattr(user, 'id_number'):
+                AnswerModel.objects.create(
+                    applicant=user,
+                    question=question_obj,
+                    question_text=question_text,
+                    answer=answer
+                )
+            else:
+                AnswerModel.objects.create(
+                    organization=user,
+                    question=question_obj,
+                    question_text=question_text,
+                    answer=answer
+                )
+        except Exception as e:
+            print("Failed saving question:", raw_value, "Error:", e)
+            continue
+
+
+    print("Security questions update completed")
+    return JsonResponse({'success': True})
+
+@csrf_exempt
+@login_required
+def verify_password(request):
+    if request.method != 'POST':
+        return JsonResponse({'valid': False, 'message': 'Invalid method'}, status=405)
+
+    data = json.loads(request.body)
+    password = data.get('password', '').strip()
+
+    if hasattr(request.user, 'id_number'):
+        print(f"Verifying password for Applicant: {request.user.id_number}")
+    elif hasattr(request.user, 'license_number'):
+        print(f"Verifying password for Organization: {request.user.license_number}")
+    else:
+        print("Verifying password for Unknown user type")
+
+    if request.user.check_password(password):
+        return JsonResponse({'valid': True})
+    return JsonResponse({'valid': False})
+
+@csrf_exempt
+@login_required
+def change_password(request):
+
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=405)
+
+    user = request.user
+    print("Password change request received")
+
+    data = request.POST or json.loads(request.body)
+    old_password = data.get('old_password')
+    new_password1 = data.get('new_password1')
+    new_password2 = data.get('new_password2')
+
+    if not new_password1 or not new_password2:
+        return JsonResponse({'success': False, 'message': 'New password fields required'}, status=400)
+
+    if new_password1 != new_password2:
+        return JsonResponse({'success': False, 'message': 'Passwords do not match'}, status=400)
+
+    if hasattr(user, 'id_number'):
+        print("User type: Applicant")
+    elif hasattr(user, 'license_number'):
+        print("User type: Organization")
+    else:
+        print("User type: Unknown")
+        return JsonResponse({'success': False, 'message': 'Unauthorized'}, status=403)
+
+    if old_password:
+        if not user.check_password(old_password):
+            print("Old password incorrect")
+            return JsonResponse({'success': False, 'message': 'Old password is incorrect'}, status=400)
+    else:
+        verified = data.get('verify')
+        if not verified:
+            print("No old password or verification")
+            return JsonResponse({'success': False, 'message': 'Verification required'}, status=400)
+
+    user.set_password(new_password1)
+    user.save()
+
+    print("Password successfully updated")
+    return JsonResponse({'success': True})

@@ -30,9 +30,21 @@ document.addEventListener("DOMContentLoaded", function () {
     const finalPwError = document.getElementById("finalPwError");
   
     const finalPwForm = document.getElementById("finalPwForm");
-  
+    const userId = document.getElementById("userIdNumber")?.value;
+    const userType = document.getElementById("userType")?.value;
     let method = null;
-  
+
+    function validatePasswordMatch() {
+      if (newPw1.value && newPw2.value && newPw1.value !== newPw2.value) {
+        finalPwError.textContent = "Passwords do not match.";
+      } else {
+        finalPwError.textContent = "";
+      }
+    }
+    
+    newPw1.addEventListener("input", validatePasswordMatch);
+    newPw2.addEventListener("input", validatePasswordMatch);
+    
     function getCookie(name) {
       let cookieValue = null;
       if (document.cookie && document.cookie !== "") {
@@ -67,23 +79,21 @@ document.addEventListener("DOMContentLoaded", function () {
       method = "security";
       showStep(step2Sec);
       updateProgress("66%");
-  
-      fetch("/get_security_questions/")
-        .then(res => res.json())
-        .then(data => {
-          secQuestionsBox.innerHTML = "";
-          data.forEach(q => {
-            const el = document.createElement("div");
-            el.className = "mb-3";
-            el.innerHTML = `
-              <label class="form-label">${q.question_text}</label>
-              <input type="text" class="form-control sec-answer" data-id="${q.id}" placeholder="Your answer">`;
-            secQuestionsBox.appendChild(el);
-          });
-        })
-        .catch(() => {
-          secAnswersError.textContent = "Failed to load questions.";
-        });
+
+    fetch(`/get_security_questions/?id_number=${userId}`)
+      .then(res => res.json())
+      .then(data => {
+        secQuestionsBox.innerHTML = "";
+        data.forEach(q => {
+          const el = document.createElement("div");
+          el.className = "mb-3";
+          el.innerHTML = `
+            <label class="form-label">${q.question_text}</label>
+            <input type="text" class="form-control sec-answer" data-id="${q.id}" placeholder="Your answer">
+          `;
+          secQuestionsBox.appendChild(el);
+        });        
+      });
     };
   
     backStep1a.onclick = () => {
@@ -135,12 +145,12 @@ document.addEventListener("DOMContentLoaded", function () {
   
       const answers = [];
       document.querySelectorAll(".sec-answer").forEach(input => {
-        const question = input.previousElementSibling.textContent;
+        const questionId = input.getAttribute("data-id");
         const answer = input.value.trim();
-        if (answer) {
-          answers.push({ question, answer });
+        if (questionId && answer) {
+          answers.push({ question_id: questionId, answer });
         }
-      });
+      });      
   
       if (answers.length < 2) {
         secAnswersError.textContent = "Answer at least 2 questions.";
@@ -153,7 +163,11 @@ document.addEventListener("DOMContentLoaded", function () {
           "Content-Type": "application/json",
           "X-CSRFToken": getCookie("csrftoken")
         },
-        body: JSON.stringify({ answers })
+        body: JSON.stringify({
+          id_number: userId,
+          user_type: userType,
+          answers
+        })
       })
         .then(res => res.json())
         .then(data => {
@@ -200,7 +214,7 @@ document.addEventListener("DOMContentLoaded", function () {
       formData.append("new_password1", pw1);
       formData.append("new_password2", pw2);
   
-      fetch("/change_password/", {
+      fetch("{% url 'change_password' %}", {
         method: "POST",
         headers: {
           "X-CSRFToken": getCookie("csrftoken")
