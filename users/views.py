@@ -11,6 +11,7 @@ from django.http import JsonResponse
 from backend.models import JobPosting, JobApplication
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 
 @login_required
 def profile_view(request):
@@ -27,13 +28,11 @@ def profile_view(request):
         interest = request.POST.get('job_type_interest')
         cv_file = request.FILES.get('cv')
 
-        # Email validation
         email_taken = Applicant.objects.exclude(pk=applicant.pk).filter(email=email).exists() or \
                       Organization.objects.filter(organization_email=email).exists()
         if email_taken:
             messages.error(request, "This email is already taken by another account.")
         else:
-            # Save changes
             applicant.email = email
             applicant.phone_number = phone
             applicant.country = country
@@ -84,6 +83,8 @@ def applicant_catalog_view(request):
 def applicant_dashboard(request):
     query = request.GET.get('q', '')
     job_type = request.GET.get('job_type', '')
+    page_number = request.GET.get('page', 1)
+    
     applicant = request.user
 
     jobs = JobPosting.objects.filter(is_active=True)
@@ -96,11 +97,14 @@ def applicant_dashboard(request):
 
     applied_jobs = JobApplication.objects.filter(applicant=applicant).values_list('job_id', flat=True)
     jobs = jobs.exclude(id__in=applied_jobs)
-    
+
     has_visible_jobs = jobs.exists()
 
+    paginator = Paginator(jobs, 6)
+    page_obj = paginator.get_page(page_number)
+
     context = {
-        'jobs': jobs[:6],
+        'page_obj': page_obj,
         'applied_job_ids': applied_jobs,
         'query': query,
         'job_type': job_type,
@@ -138,8 +142,34 @@ def recently_applied_view(request):
     applicant = request.user
     applications = JobApplication.objects.select_related('job').filter(
         applicant=applicant,
-        job__is_active=True 
+        job__is_active=True
     )
+    paginator = Paginator(applications, 6)  
+    page_number = request.GET.get('page') 
+    page_obj = paginator.get_page(page_number) 
     return render(request, 'applicant/recently_applied.html', {
-        'applications': applications
+        'page_obj': page_obj, 
     })
+    
+@login_required
+def submit_feedback(request, app_id):
+    application = get_object_or_404(JobApplication, id=app_id, applicant=request.user)
+
+    if application.status != "accepted":
+        messages.error(request, "You can only give feedback for accepted jobs.")
+        return redirect("recently_applied")
+
+    if application.feedback:
+        messages.warning(request, "Feedback already submitted.")
+        return redirect("recently_applied")
+
+    if request.method == "POST":
+        feedback = request.POST.get("feedback", "").strip()
+        if feedback:
+            application.feedback = feedback
+            application.save()
+            messages.success(request, "Feedback submitted successfully.")
+        else:
+            messages.warning(request, "Feedback cannot be empty.")
+
+    return redirect("recently_applied")

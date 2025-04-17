@@ -13,9 +13,23 @@ docker-compose exec web python manage.py makemigrations backend
 docker-compose exec web python manage.py migrate
 
 ---
-# Step 1: Migrate required dependencies
-docker-compose exec web python manage.py migrate contenttypes
-docker-compose exec web python manage.py migrate auth
-docker-compose exec web python manage.py migrate users
-docker-compose exec web python manage.py migrate admin
-docker-compose exec web python manage.py migrate
+applicant users:
+A1001
+A1002
+A1003
+
+Organization:
+ORG1001
+ORG1002
+ORG1003
+
+Password:
+Password1234!
+Security Password:
+apple
+
+
+--- troubleshooting
+docker exec -it eventwork-web bash
+
+python manage.py shell

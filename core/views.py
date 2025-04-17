@@ -5,11 +5,14 @@ from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET
 from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required
 
 import json
 from .forms import LoginForm
 from django.contrib import messages
 from django.http import JsonResponse
+from backend.models import Message
 
 from backend.models import (
     JobPosting
@@ -397,26 +400,29 @@ def change_password(request):
     return JsonResponse({'success': True})
 
 @login_required
-def chat_view(request):
-    user = request.user
+def chat_view(request, job_id=None):
+    applicant = request.user
+    job = get_object_or_404(JobPosting, id=job_id)
+    
+    organization = job.org
 
-    if hasattr(user, 'applicantprofile'):
-        user_type = 'applicant'
-        header_template = "applicant/applicant_header.html"
-        sidebar_template = "applicant/apl_sidebar.html"
-    elif hasattr(user, 'organizationprofile'):
-        user_type = 'organization'
-        header_template = "organization/org_header.html"
-        sidebar_template = "organization/org_sidebar.html"
-    else:
-        user_type = 'unknown'
-        header_template = None
-        sidebar_template = None
+    existing_messages = Message.objects.filter(
+        (models.Q(sender=applicant) & models.Q(receiver=organization) & models.Q(job=job)) |
+        (models.Q(sender=organization) & models.Q(receiver=applicant) & models.Q(job=job))
+    )
 
-    context = {
-        "section": "chat",
-        "user_type": user_type,
-        "header_template": header_template,
-        "sidebar_template": sidebar_template,
-    }
-    return render(request, "core/dashboard_wrapper.html", context)
+    if request.method == 'POST':
+        message_content = request.POST.get('message')
+        if message_content:
+            Message.objects.create(
+                sender=applicant,
+                receiver=organization,
+                job=job,
+                content=message_content
+            )
+
+    return render(request, 'applicant/chat.html', {
+        'job': job,
+        'organization': organization,
+        'messages': existing_messages,
+    })

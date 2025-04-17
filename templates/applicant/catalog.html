@@ -2,7 +2,7 @@
 
 <div class="job-cards">
   {% if has_visible_jobs %}
-    {% for job in jobs %}
+    {% for job in page_obj %}
       <div class="job-card">
         {% if job.image %}
           <img src="{{ job.image.url }}" alt="{{ job.title }}" class="job-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">

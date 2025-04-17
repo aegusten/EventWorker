@@ -1,6 +1,6 @@
 <div class="job-cards">
-  {% if applications %}
-    {% for app in applications %}
+  {% if page_obj %}
+    {% for app in page_obj %}
       <div class="job-card">
         {% if app.job.image %}
           <img src="{{ app.job.image.url }}" class="job-image" alt="{{ app.job.title }}">
@@ -22,6 +22,7 @@
         </div>
       </div>
     {% endfor %}
+
   {% else %}
     <div class="w-100 text-center py-5">
       <h5 class="text-muted">No jobs were applied.</h5>
