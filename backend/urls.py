@@ -9,4 +9,5 @@ urlpatterns = [
     path('job/<int:job_id>/message/', views.message_applicants, name='message_applicants'),
     path('job/<int:job_id>/delete/', views.delete_job, name='delete_job'),
     path('chat/', views.chat_view, name='chat_view'),
+    path('api/job-types/', views.get_allowed_job_types, name='get_allowed_job_types'),
 ]

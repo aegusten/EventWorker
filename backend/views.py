@@ -5,10 +5,11 @@ from .models import JobPosting
 from .forms import JobPostingForm
 from users.models import Organization
 from django.http import JsonResponse
+from django.views.decorators.http import require_GET
 
 @login_required
 def organization_dashboard(request):
-    print("🔔 POST received:", request.POST)
+    print(" POST received:", request.POST)
     if request.method == 'POST':
         form = JobPostingForm(request.POST, request.FILES)
         if form.is_valid():
@@ -16,7 +17,6 @@ def organization_dashboard(request):
             job.org = request.user
             job.save()
 
-            # CHECK IF AJAX (so JSON only if using fetch)
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 data = {
                     'id': job.id,
@@ -27,13 +27,11 @@ def organization_dashboard(request):
                 }
                 return JsonResponse({'success': True, 'job': data})
 
-            return redirect('organization_dashboard')  # fallback
+            return redirect('organization_dashboard')  
 
-        # Handle form invalid JSON
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
             return JsonResponse({'success': False, 'errors': form.errors}, status=400)
 
-    # GET method
     jobs = JobPosting.objects.filter(org=request.user, is_active=True)
     form = JobPostingForm()
     return render(request, 'dashboards/organization_dashboard.html', {
@@ -47,7 +45,7 @@ def organization_profile_view(request):
 
     if request.method == 'POST':
         org.organization_name = request.POST.get('organization_name')
-        org.license_number = request.POST.get('license_number')  # optional
+        org.license_number = request.POST.get('license_number')
         org.organization_email = request.POST.get('organization_email')
         org.organization_phone = request.POST.get('organization_phone')
         org.location = request.POST.get('location')
@@ -100,7 +98,6 @@ def delete_job(request, job_id):
         job.is_active = False
         job.save()
 
-        # Handle AJAX deletion
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
             return JsonResponse({'success': True})
 
@@ -111,3 +108,19 @@ def delete_job(request, job_id):
 @login_required
 def chat_view(request):
     return render(request, 'dashboards/org_chat.html')
+
+@login_required
+@require_GET
+def get_allowed_job_types(request):
+    org = request.user
+    job_type_map = {
+        'small': ['volunteer'],
+        'medium': ['part-time', 'volunteer'],
+        'large': ['full-time', 'part-time', 'volunteer'],
+    }
+    
+    allowed = job_type_map.get(org.company_type.lower(), [])
+
+    print(f"[DEBUG] Org: {org.organization_name}, Type: {org.company_type}, Allowed Job Types: {allowed}")
+
+    return JsonResponse({'allowed_types': allowed})

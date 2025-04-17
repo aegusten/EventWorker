@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", function() {
-  // DOM elements (unchanged from your code)
   var applicantIcon = document.getElementById("applicantIcon");
   var organizationIcon = document.getElementById("organizationIcon");
   var userTypeInput = document.getElementById("user_type");
@@ -18,7 +17,6 @@ document.addEventListener("DOMContentLoaded", function() {
   var passwordError = document.createElement("div");
   var ageError = document.createElement("div");
 
-  // Email and ID code validation elements
   var applicantEmailInput = document.querySelector('.applicant-only input[name="email"]');
   var orgEmailInput = document.querySelector('.org-only input[name="organization_email"]');
   var applicantIdInput = document.querySelector('.applicant-only input[name="id_number"]');
@@ -28,14 +26,12 @@ document.addEventListener("DOMContentLoaded", function() {
   var applicantIdError = document.querySelector('.applicant-only .id-code-error');
   var orgIdError = document.querySelector('.org-only .id-code-error');
 
-  // Setup error message elements (unchanged)
   passwordError.className = "text-danger mt-1";
   password2.parentElement.appendChild(passwordError);
 
   ageError.className = "text-danger mt-1";
   jobTypeSelect.parentElement.appendChild(ageError);
 
-  // Password and age validation functions (unchanged)
   function validatePasswords() {
     if (password1.value && password2.value) {
       if (password1.value !== password2.value) {
@@ -77,7 +73,6 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   }
 
-  // Get current inputs based on user type (unchanged)
   function getCurrentInputs() {
     var userType = userTypeInput.value;
     if (userType === 'applicant') {
@@ -97,7 +92,6 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   }
 
-  // Check email uniqueness
   function checkEmail() {
     var inputs = getCurrentInputs();
     var email = inputs.emailInput.value.trim();
@@ -153,7 +147,6 @@ document.addEventListener("DOMContentLoaded", function() {
   }
   
 
-  // Event listeners (unchanged)
   applicantEmailInput.addEventListener('blur', checkEmail);
   orgEmailInput.addEventListener('blur', checkEmail);
   applicantIdInput.addEventListener('blur', checkIdCode);
@@ -165,7 +158,6 @@ document.addEventListener("DOMContentLoaded", function() {
   availabilitySelect.addEventListener("change", validateAge);
   jobTypeSelect.addEventListener("change", validateAge);
 
-  // Applicant and Organization icon click handlers (unchanged)
   if (applicantIcon) {
     applicantIcon.onclick = function() {
       userTypeInput.value = "applicant";
@@ -194,7 +186,6 @@ document.addEventListener("DOMContentLoaded", function() {
     };
   }
 
-  // Step 1 validation and navigation (unchanged)
   function validateStep1() {
     var inputs = getCurrentInputs();
     var email = inputs.emailInput.value.trim();
@@ -248,7 +239,6 @@ document.addEventListener("DOMContentLoaded", function() {
     };
   }
 
-  // Forgot password logic (unchanged, included for completeness)
   var forgotId = document.getElementById("forgotId");
   var forgotUserType = document.getElementById("forgotUserType");
   var securityQuestions = document.getElementById("securityQuestions");
@@ -382,4 +372,5 @@ document.addEventListener("DOMContentLoaded", function() {
       }
     };
   }
+
 });

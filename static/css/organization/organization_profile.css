@@ -47,3 +47,27 @@
 .org-wrapper textarea {
   resize: vertical;
 }
+
+.org-wrapper .readonly-display {
+  padding: 0.85rem 1.25rem;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  font-size: 1.05rem;
+  color: #333;
+  margin-top: 0.4rem;
+}
+
+.org-wrapper label {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #222;
+  display: inline-block;
+  margin-bottom: 0.2rem;
+}
+
+.org-wrapper .form-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem; 
+}

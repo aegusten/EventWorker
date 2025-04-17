@@ -136,3 +136,6 @@ footer.login-footer {
   opacity: 0.5;
 }
 
+.fade-message {
+  opacity: 1;
+}

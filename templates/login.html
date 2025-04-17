@@ -15,8 +15,8 @@
   </div>
 
   {% comment %} FORGOT PASSWORD MODAL {% endcomment %}
-  <div class="modal fade" id="forgotModal" tabindex="-1" aria-hidden="true">
-    {% include "modals/login_forgot_password.html" %}
+  <div class="modal fade" id="signupModal" tabindex="-1" aria-hidden="true">
+    {% include "modals/register.html" %}
   </div>
 
   {% comment %} REGISTER FORMS MODAL {% endcomment %}
@@ -24,9 +24,9 @@
     {% include "modals/login_forgot_password.html" %}
   </div>
 
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="{% static 'js/login.js' %}"></script>
   <script src="{% static 'js/login_forgot_password.js' %}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+ 
 </body>
 </html>

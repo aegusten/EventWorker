@@ -4,30 +4,22 @@
 {% block content %}
 <div class="applicant-dashboard">
 
-  <!-- Header -->
   <header class="main-header">
     {% include "applicant/applicant_header.html" %}
   </header>
 
-  <!-- Search & Filter -->
   <section class="search-filter-section">
     {% include "applicant/search.html" %}
   </section>
 
-  <!-- Main Grid -->
   <div class="dashboard-grid">
       {% include "applicant/catalog.html" %}
-    <!-- Side Panel -->
-    <aside class="sidebar">
-      <h4>Quick Info</h4>
-      <ul>
-        <li><a href="#">Recently Applied</a></li>
-        <li><a href="#">Saved Jobs</a></li>
-        <li><a href="#">Messages</a></li>
-      </ul>
-    </aside>
+      {% include "applicant/apl_sidebar.html" %}
+      {% if section == "chat" %}
+        {% include "applicant/chat.html" %}
+      {% endif %}
+    
   </div>
 </div>
-
 
 {% endblock %}

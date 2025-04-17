@@ -52,9 +52,11 @@ def login_view(request):
                 elif isinstance(user, Organization):
                     return redirect('organization_dashboard')
                 else:
-                    messages.error(request, "Unrecognized user type.")
+                    messages.error(request, "Unrecognized user type")
+                    return redirect('login')
             else:
-                messages.error(request, 'Invalid credentials.')
+                messages.error(request, 'Invalid credentials')
+                return redirect('login')
 
     return render(request, 'login.html', context)
 
@@ -393,3 +395,28 @@ def change_password(request):
 
     print("Password successfully updated")
     return JsonResponse({'success': True})
+
+@login_required
+def chat_view(request):
+    user = request.user
+
+    if hasattr(user, 'applicantprofile'):
+        user_type = 'applicant'
+        header_template = "applicant/applicant_header.html"
+        sidebar_template = "applicant/apl_sidebar.html"
+    elif hasattr(user, 'organizationprofile'):
+        user_type = 'organization'
+        header_template = "organization/org_header.html"
+        sidebar_template = "organization/org_sidebar.html"
+    else:
+        user_type = 'unknown'
+        header_template = None
+        sidebar_template = None
+
+    context = {
+        "section": "chat",
+        "user_type": user_type,
+        "header_template": header_template,
+        "sidebar_template": sidebar_template,
+    }
+    return render(request, "core/dashboard_wrapper.html", context)

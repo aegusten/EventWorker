@@ -3,8 +3,11 @@ from . import views
 
 urlpatterns = [
     path('profile/', views.profile_view, name='profile_view'),
-    path('chat/', views.chat_view, name='chat'),
-    path('chat/', views.chat_view, name='chat_view'),
     path('search/', views.search_jobs, name='search_jobs'),
+    path('applicant/catalog/', views.applicant_catalog_view, name='applicant_catalog'),
+    path('apply/<int:job_id>/', views.apply_job, name='apply_job'),
+    path('dashboard/applicant/', views.applicant_dashboard, name='applicant_dashboard'),
+    path('recently-applied/', views.recently_applied_view, name='recently_applied'),
+
 ]
 
