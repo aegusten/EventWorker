@@ -41,7 +41,7 @@ urlpatterns = [
     path('verify_security_answers/', public_verify_security_answers, name='verify_security_answers'),
     path('get_security_questions_choices/', get_security_questions_choices, name='get_security_questions_choices'),
     path('account/', include('users.urls')),
-    path('chat/', chat_view, name='chat_view'),
+    path('chat/<int:job_id>/', chat_view, name='main_chat'),
 ]
 
 if settings.DEBUG:

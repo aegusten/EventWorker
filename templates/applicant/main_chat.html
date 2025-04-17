@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="applicant-dashboard">
+
+  <header class="main-header">
+    {% include "applicant/applicant_header.html" %}
+  </header>
+
+  <section class="search-filter-section">
+    <h2 class="ms-3">Chats</h2>
+  </section>
+
+  <div class="dashboard-grid">
+    {% include "applicant/chat.html" %}
+
+    {% include "applicant/apl_sidebar.html" %}
+  </div>
+</div>
+{% endblock %}

@@ -23,12 +23,12 @@ class JobPosting(models.Model):
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"{self.title} at {self.org.company_name}"
+        return f"{self.title} at {self.org.organization_name}"
 
 
 class JobApplication(models.Model):
     applicant = models.ForeignKey(Applicant, on_delete=models.CASCADE)
-    job = models.ForeignKey(JobPosting, on_delete=models.CASCADE, related_name='applications')  # 👈 FIX HERE
+    job = models.ForeignKey(JobPosting, on_delete=models.CASCADE, related_name='applications')  
     status = models.CharField(max_length=50, choices=[
         ('pending', 'Pending'),
         ('accepted', 'Accepted'),
