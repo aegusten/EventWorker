@@ -10,53 +10,44 @@
 
       <div class="container mt-4">
         <h2 class="mb-4 text-primary">Applicants for "{{ job.title }}"</h2>
-        <a href="{% url 'organization_dashboard' %}" class="btn btn-outline-secondary mb-3">← Back to Dashboard</a>
+        <a href="{% url 'organization_dashboard' %}" class="back-btn mb-3">← Back to Dashboard</a>
 
         {% if applicants %}
-        <div class="row row-cols-1 g-4">
+        <div class="applicant-cards">
           {% for app in applicants %}
-          <div class="col">
-            <div class="card shadow-sm">
-              <div class="card-body">
-                <h5 class="card-title">{{ app.applicant.full_name }}</h5>
-                <table class="table table-bordered">
-                    <tbody>
-                        <tr><th>Passport ID</th><td>{{ app.applicant.id_number }}</td></tr>
-                        <tr><th>Email</th><td>{{ app.applicant.email }}</td></tr>
-                        <tr><th>Phone</th><td>{{ app.applicant.phone_number|default:"—" }}</td></tr>
-                        <tr><th>Age</th><td>{{ app.applicant.age|default:"—" }}</td></tr>
-                        <tr><th>Nationality</th><td>{{ app.applicant.country|default:"—" }}</td></tr>
-                        <tr><th>City</th><td>{{ app.applicant.address|default:"—" }}</td></tr>
-                        <tr><th>Institution</th><td>{{ app.applicant.education|default:"—" }}</td></tr>
-                        <tr><th>Preferred Location</th><td>{{ app.applicant.preferred_location|default:"—" }}</td></tr>
-                        <tr><th>Skills</th><td>{{ app.applicant.skills|default:"—" }}</td></tr>
-                        <tr><th>Location of Interest</th><td>{{ app.applicant.location_of_interest|default:"—" }}</td></tr>
-                        <tr><th>Availability</th><td>{{ app.applicant.availability|default:"—" }}</td></tr>
-                        <tr><th>Job Type Interest</th><td>{{ app.applicant.job_type_interest|default:"—" }}</td></tr>
-                        <tr><th>Message to Organization</th><td>{{ app.message_to_org|default:"—" }}</td></tr>
-                        <tr><th>Feedback</th><td>{{ app.feedback|default:"—" }}</td></tr>
-                        <tr><th>Applied On</th><td>{{ app.created_at|date:"Y-m-d H:i" }}</td></tr>
-                        <tr>
-                          <th>CV</th>
-                          <td>
-                            {% if app.applicant.cv %}
-                              <a href="{{ app.applicant.cv.url }}" class="btn btn-sm btn-primary" target="_blank">View CV</a>
-                            {% else %}
-                              <span class="text-muted">No CV</span>
-                            {% endif %}
-                          </td>
-                        </tr>
-                        <tr>
-                          <th>Status</th>
-                          <td><span class="badge bg-{{ app.status|yesno:'success,warning,danger' }}">{{ app.status }}</span></td>
-                        </tr>
-                      </tbody>                      
-                </table>
-              </div>
+          <div class="applicant-card">
+            <div class="header">{{ app.applicant.full_name }}</div>
+            <div class="details">
+              <div><strong>Email:</strong> {{ app.applicant.email }}</div>
+              <div><strong>Phone:</strong> {{ app.applicant.phone_number|default:"—" }}</div>
+              <div><strong>Age:</strong> {{ app.applicant.age|default:"—" }}</div>
+              <div><strong>Skills:</strong> {{ app.applicant.skills|default:"—" }}</div>
+              <div><strong>Location:</strong> {{ app.applicant.city|default:"—" }}</div>
+              <div><strong>Status:</strong> <span class="badge bg-{{ app.status|yesno:'success,warning,danger' }}">{{ app.status }}</span></div>
+            </div>
+            <div class="action-buttons">
+              <a href="{% url 'accept_applicant' app.id %}" class="accept-btn">Accept</a>
+              <a href="{% url 'reject_applicant' app.id %}" class="reject-btn">Reject</a>
+              {% if app.applicant.cv %}
+              <a href="{{ app.applicant.cv.url }}" class="cv-btn" target="_blank">View CV</a>
+              {% else %}
+              <span>No CV</span>
+              {% endif %}
             </div>
           </div>
           {% endfor %}
         </div>
+
+        <!-- Pagination -->
+        <div class="custom-pagination">
+          <ul>
+            <li class="active"><span>1</span></li>
+            <li><a href="#">2</a></li>
+            <li><a href="#">3</a></li>
+            <li><a href="#">Next</a></li>
+          </ul>
+        </div>
+
         {% else %}
         <div class="alert alert-info mt-3">No applicants have applied for this job yet.</div>
         {% endif %}
@@ -64,25 +55,4 @@
     </section>
   </div>
 </div>
-{% endblock %}
-
-
-
-{% block extra_scripts %}
-<style>
-  .card-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--primary-dark);
-  }
-  .table th {
-    background-color: var(--primary);
-    color: white;
-    width: 30%;
-  }
-  .badge {
-    font-size: 0.9rem;
-    padding: 0.4rem 0.8rem;
-  }
-</style>
 {% endblock %}

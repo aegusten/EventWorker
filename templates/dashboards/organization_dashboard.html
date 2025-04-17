@@ -26,8 +26,7 @@
         
                 <div class="d-flex flex-wrap gap-2">
                   <a href="{% url 'view_applicants' job.id %}" class="btn btn-outline-primary btn-sm">Applicants</a>
-                  <a href="{% url 'shortlist_job' job.id %}" class="btn btn-outline-secondary btn-sm">Shortlist</a>
-                  <a href="{% url 'message_applicants' job.id %}" class="btn btn-outline-info btn-sm">Message</a>
+
                   <button class="btn btn-outline-dark btn-sm" data-bs-toggle="modal" data-bs-target="#viewJobModal{{ job.id }}">View</button>
                   <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteJobModal{{ job.id }}">Delete</button>
 

@@ -9,5 +9,7 @@ urlpatterns = [
     path('dashboard/applicant/', views.applicant_dashboard, name='applicant_dashboard'),
     path('recently-applied/', views.recently_applied_view, name='recently_applied'),
     path("feedback/<int:app_id>/submit/", views.submit_feedback, name="submit_feedback"),
+    path('chat/<int:job_id>/', views.chat_view, name='chat_view'),
+
 ]
 
