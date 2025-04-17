@@ -1,10 +1,12 @@
 {% load static %}
 
-<input type="text" name="q" placeholder="Search jobs...">
-<select name="job_type">
-  <option value="">All Types</option>
-  <option value="full-time">Full-time</option>
-  <option value="part-time">Part-time</option>
-  <option value="volunteer">Volunteer</option>
-</select>
-<button type="submit">Search</button>
+<form method="get" class="d-flex gap-2 w-100">
+  <input type="text" name="q" placeholder="Search jobs..." value="{{ request.GET.q|default_if_none:'' }}">
+  <select name="job_type">
+    <option value="">All Types</option>
+    <option value="full-time" {% if request.GET.job_type == "full-time" %}selected{% endif %}>Full-time</option>
+    <option value="part-time" {% if request.GET.job_type == "part-time" %}selected{% endif %}>Part-time</option>
+    <option value="volunteer" {% if request.GET.job_type == "volunteer" %}selected{% endif %}>Volunteer</option>
+  </select>
+  <button type="submit">Search</button>
+</form>

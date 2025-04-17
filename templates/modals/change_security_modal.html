@@ -1,0 +1,42 @@
+<div class="modal fade" id="changeSecurityModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header border-0">
+        <h5 class="modal-title w-100 text-center">Change Security Questions</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="px-4 pt-1">
+        <div class="progress" style="height: 6px;">
+          <div id="securityProgress" class="progress-bar bg-info" style="width: 50%;"></div>
+        </div>
+      </div>
+
+      <div class="modal-body px-4">
+        <div id="securityStep1">
+          <label class="form-label">Enter Current Password</label>
+          <input type="password" id="secConfirmPwInput" class="form-control mb-2" placeholder="••••••••">
+          <div class="text-danger small mb-2" id="secConfirmPwError"></div>
+          <div class="d-flex justify-content-end">
+            <button type="button" class="btn btn-primary" id="verifySecCurrentPw">Next</button>
+          </div>
+        </div>
+
+        <div id="securityStep2" class="d-none">
+          <form id="securityUpdateForm">
+            {% csrf_token %}
+            <div id="newQuestionsContainer"></div>
+
+            <div class="text-danger small mb-2" id="secUpdateError"></div>
+            <div class="d-flex justify-content-between mt-3">
+              <button type="button" class="btn btn-secondary" id="backToSecStep1">Back</button>
+              <button type="submit" class="btn btn-success">Update Questions</button>
+            </div>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

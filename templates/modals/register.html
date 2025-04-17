@@ -186,16 +186,17 @@
               </select>
             </div>
             {% for q in security_questions %}
-              <div class="col-md-6">
-                <label class="form-label fw-bold">{{ q.question_text }}</label>
-                <select class="form-control" name="question{{ forloop.counter }}_subquestion" {% if forloop.counter < 3 %}required{% endif %}>
-                  <option value="{{ q.option1 }}">{{ q.option1 }}</option>
-                  <option value="{{ q.option2 }}">{{ q.option2 }}</option>
-                  <option value="{{ q.option3 }}">{{ q.option3 }}</option>
-                </select>
-                <input type="text" class="form-control mt-2" name="answer{{ forloop.counter }}" {% if forloop.counter < 3 %}required{% endif %} placeholder="Answer{% if forloop.counter == 3 %} (optional){% endif %}">
-              </div>
-            {% endfor %}
+            <div class="col-md-6">
+              <label class="form-label fw-bold">{{ q.question_text }}</label>
+              <select class="form-control" name="question{{ forloop.counter }}_subquestion" {% if forloop.counter < 3 %}required{% endif %}>
+                <option value="">-- Select a question --</option>
+                <option value="{{ q.id }}|{{ q.option1 }}">{{ q.option1 }}</option>
+                <option value="{{ q.id }}|{{ q.option2 }}">{{ q.option2 }}</option>
+                <option value="{{ q.id }}|{{ q.option3 }}">{{ q.option3 }}</option>
+              </select>
+              <input type="text" class="form-control mt-2" name="answer{{ forloop.counter }}" {% if forloop.counter < 3 %}required{% endif %} placeholder="Answer{% if forloop.counter == 3 %} (optional){% endif %}">
+            </div>
+          {% endfor %}          
           </div>
           <div class="d-grid mt-4">
             <button type="submit" class="n btn-outline-light mt-3 w-100">Register</button>

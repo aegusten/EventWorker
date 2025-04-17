@@ -12,6 +12,13 @@ from .views import (
     check_uniqueness,
     applicant_dashboard,
     organization_dashboard,
+    update_security_questions,
+    change_password,
+    verify_password,
+    get_security_questions,
+    public_verify_security_answers,
+    get_security_questions_choices,
+    chat_view,
 )
 
 urlpatterns = [
@@ -26,7 +33,15 @@ urlpatterns = [
     path('dashboard/organization/', organization_dashboard, name='organization_dashboard'),
     path('dashboard/applicant/', applicant_dashboard, name='applicant_dashboard'),
     path('jobs/', include('backend.urls')),
-     path('organization/', include('backend.urls')),
+    path('organization/', include('backend.urls')),
+    path('update_security_questions/', update_security_questions, name='update_security_questions'),
+    path('change_password/', change_password, name='change_password'),
+    path('verify_password/', verify_password, name='verify_password'),
+    path('get_security_questions/', get_security_questions, name='get_security_questions'),
+    path('verify_security_answers/', public_verify_security_answers, name='verify_security_answers'),
+    path('get_security_questions_choices/', get_security_questions_choices, name='get_security_questions_choices'),
+    path('account/', include('users.urls')),
+    path('chat/', chat_view, name='chat_view'),
 ]
 
 if settings.DEBUG:

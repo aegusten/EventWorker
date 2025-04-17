@@ -65,6 +65,21 @@
 .org-wrapper .modal-header h5 {
   color: var(--primary-dark);
 }
+.pass-sec-btn {
+  padding: 0.6rem 1.5rem;
+  font-weight: 600;
+  background-color: var(--btn-main);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  transition: background 0.3s ease;
+}
+.pass-sec-btn:hover {
+  background-color: var(--btn-hover);
+  color: white;
+}
+
+
 .org-wrapper .sidebar {
   background-color: var(--bg-secondary);
   color: var(--white);
@@ -152,3 +167,48 @@
   height: 180px;
 }
 
+.org-wrapper .sidebar-nav a,
+.org-wrapper .sidebar-link {
+  all: unset;
+  color: var(--white);
+  font-weight: 700;
+  font-size: 1.1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.8rem;
+  padding: 0.7rem 1rem;
+  width: 100%;
+  border-radius: 8px;
+  cursor: pointer;
+  background-color: transparent;
+  transition: all 0.3s ease;
+}
+
+.org-wrapper .sidebar-nav a:hover,
+.org-wrapper .sidebar-link:hover {
+  background-color: var(--btn-hover);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transform: translateX(-4px);
+}
+
+.org-wrapper .sidebar-nav a.active,
+.org-wrapper .sidebar-link.active {
+  background-color: var(--btn-main);
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+.org-wrapper .sidebar-nav a i,
+.org-wrapper .sidebar-link i {
+  font-size: 1.4rem;
+  min-width: 1.5rem;
+  transition: transform 0.3s ease;
+}
+
+.org-wrapper .sidebar-nav a:hover i,
+.org-wrapper .sidebar-link:hover i {
+  transform: scale(1.1);
+}

@@ -1,0 +1,30 @@
+<div class="job-cards">
+  {% if applications %}
+    {% for app in applications %}
+      <div class="job-card">
+        {% if app.job.image %}
+          <img src="{{ app.job.image.url }}" class="job-image" alt="{{ app.job.title }}">
+        {% else %}
+          <div class="job-placeholder">No Image</div>
+        {% endif %}
+        <div class="job-info">
+          <h3>{{ app.job.title }}</h3>
+          <p><strong>{{ app.job.get_job_type_display }}</strong></p>
+          <p>{{ app.job.location }}</p>
+          <p><strong>Status:</strong> {{ app.get_status_display }}</p>
+          <div class="d-flex justify-content-between mt-2">
+            {% if app.status != 'rejected' %}
+              <a href="#" class="apply-btn chat-btn" data-job-id="{{ app.job.id }}">Chat</a>
+            {% else %}
+              <span class="text-danger fw-bold">Rejected</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="w-100 text-center py-5">
+      <h5 class="text-muted">No jobs were applied.</h5>
+    </div>
+  {% endif %}
+</div>

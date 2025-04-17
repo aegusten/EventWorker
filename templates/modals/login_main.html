@@ -5,6 +5,16 @@
       <img src="{% static 'img/logo.png' %}" alt="EventWork Connect Logo" width="90" />
       <h2 class="mt-2">Welcome to EventWork</h2>
     </div>
+    {% if messages %}
+      <div class="mt-2">
+        {% for message in messages %}
+          <div class="alert alert-danger text-center fw-bold fade-message" role="alert">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
     <form method="POST" id="loginForm" action="{% url 'login' %}">
       {% csrf_token %}
       <label for="id_number" class="form-label">Passport/License ID</label>
@@ -49,3 +59,17 @@
   <footer class="login-footer">
     <p>&copy; 2025 EventWork Connect</p>
   </footer>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const alerts = document.querySelectorAll('.fade-message');
+      alerts.forEach(alert => {
+        setTimeout(() => {
+          alert.style.transition = "opacity 0.6s ease";
+          alert.style.opacity = 0;
+          setTimeout(() => alert.remove(), 600);
+        }, 3000);
+      });
+    });
+  </script>
+  

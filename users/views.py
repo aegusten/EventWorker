@@ -1,113 +1,17 @@
 from django.shortcuts import render, redirect
-import json
 from django.contrib import messages
-from django.contrib.auth.hashers import check_password
 from django.contrib.auth.decorators import login_required
 from backend.models import JobPosting
 from users.models import Applicant, Organization
-from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
+from django.utils import timezone
+import uuid
+from django.views.decorators.http import require_POST
+from django.http import JsonResponse
+from backend.models import JobPosting, JobApplication
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required
 
-@login_required
-@csrf_exempt
-def change_password(request):
-    user = request.user
-
-    if request.method == 'POST':
-        if 'current_password' in request.POST:
-            current_pw = request.POST['current_password']
-            new_pw = request.POST['new_password']
-            confirm_pw = request.POST['confirm_password']
-            if not check_password(current_pw, user.password):
-                messages.error(request, "Incorrect current password.")
-            elif new_pw != confirm_pw:
-                messages.error(request, "New passwords do not match.")
-            else:
-                user.set_password(new_pw)
-                user.save()
-                messages.success(request, "Password updated.")
-        else:
-            answers = []
-            for i in range(1, 4):
-                q = request.POST.get(f"question_{i}")
-                a = request.POST.get(f"answer_{i}", "").strip()
-                if q and a:
-                    answers.append((q, a))
-
-            correct = 0
-            for q, a in answers:
-                if user.security_answers.filter(question_text=q, answer__iexact=a).exists():
-                    correct += 1
-
-            if correct >= 2:
-                new_pw = request.POST['new_password']
-                confirm_pw = request.POST['confirm_password']
-                if new_pw != confirm_pw:
-                    messages.error(request, "Passwords do not match.")
-                else:
-                    user.set_password(new_pw)
-                    user.save()
-                    messages.success(request, "Password updated.")
-            else:
-                messages.error(request, "Security answers did not match.")
-
-        return redirect('profile_view')
-
-@login_required
-def verify_password(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        current_pw = data.get("password")
-        if current_pw and request.user.check_password(current_pw):
-            request.session['password_verification_passed'] = True
-            return JsonResponse({"valid": True})
-        return JsonResponse({"valid": False})
-    return JsonResponse({"error": "Invalid request"}, status=400)
-
-@login_required
-def verify_security_answers(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        answers = data.get('answers', [])
-        user = request.user
-        correct = 0
-        for ans in answers:
-            if user.security_answers.filter(
-                question_text=ans['question'],
-                answer__iexact=ans['answer'].strip()
-            ).exists():
-                correct += 1
-        if correct >= 2:
-            request.session['password_verification_passed'] = True
-            return JsonResponse({'valid': True})
-        return JsonResponse({'valid': False})
-    return JsonResponse({'error': 'Invalid request'}, status=400)
-
-@login_required
-@csrf_exempt
-def change_password(request):
-    if request.method == 'POST':
-        if request.session.get('password_verification_passed', False):
-            new_pw = request.POST.get('new_password1')
-            confirm_pw = request.POST.get('new_password2')
-            if new_pw != confirm_pw:
-                messages.error(request, "New passwords do not match.")
-            else:
-                request.user.set_password(new_pw)
-                request.user.save()
-                del request.session['password_verification_passed']
-                messages.success(request, "Password updated successfully.")
-            return redirect('profile_view')
-        else:
-            messages.error(request, "Verification failed.")
-            return redirect('profile_view')
-    return render(request, 'profile.html')
-
-@login_required
-def change_security_phrase(request):
-    return render(request, 'applicant/change_security.html')
-
-# --- PROFILE VIEW (Applicant) ---
 @login_required
 def profile_view(request):
     applicant = request.user
@@ -147,12 +51,6 @@ def profile_view(request):
 
     return render(request, 'applicant/profile.html', {'applicant': applicant})
 
-
-# --- CHAT VIEW ---
-@login_required
-def chat_view(request):
-    return render(request, 'chat.html')
-
 @login_required
 def search_jobs(request):
     query = request.GET.get('q', '')
@@ -169,4 +67,79 @@ def search_jobs(request):
         'jobs': jobs,
         'search_query': query,
         'selected_job_type': job_type
+    })
+
+@login_required
+def applicant_catalog_view(request):
+    user = request.user
+    applied_job_ids = JobApplication.objects.filter(applicant=user).values_list('job_id', flat=True)
+
+    un_applied_jobs = JobPosting.objects.filter(is_active=True).exclude(id__in=applied_job_ids).order_by('-created_at')[:6]
+
+    return render(request, 'applicant/catalog.html', {
+        'jobs': un_applied_jobs,
+    })
+    
+@login_required
+def applicant_dashboard(request):
+    query = request.GET.get('q', '')
+    job_type = request.GET.get('job_type', '')
+    applicant = request.user
+
+    jobs = JobPosting.objects.filter(is_active=True)
+
+    if query:
+        jobs = jobs.filter(title__icontains=query)
+
+    if job_type:
+        jobs = jobs.filter(job_type=job_type)
+
+    applied_jobs = JobApplication.objects.filter(applicant=applicant).values_list('job_id', flat=True)
+    jobs = jobs.exclude(id__in=applied_jobs)
+    
+    has_visible_jobs = jobs.exists()
+
+    context = {
+        'jobs': jobs[:6],
+        'applied_job_ids': applied_jobs,
+        'query': query,
+        'job_type': job_type,
+        'has_visible_jobs': has_visible_jobs,
+    }
+    return render(request, 'dashboards/applicant_dashboard.html', context)
+
+@require_POST
+@login_required
+def apply_job(request, job_id):
+    job = get_object_or_404(JobPosting, id=job_id, is_active=True)
+
+    applicant = request.user
+    
+    try:
+        applicant = Applicant.objects.get(pk=request.user.pk)
+    except Applicant.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Only applicants can apply.'}, status=403)
+
+    if JobApplication.objects.filter(applicant=applicant, job=job).exists():
+        return JsonResponse({'success': False, 'message': 'You have already applied to this job.'}, status=400)
+
+    application_id = f"APP-{uuid.uuid4().hex[:10].upper()}"
+
+    JobApplication.objects.create(
+        applicant=applicant,
+        job=job,
+        application_id=application_id
+    )
+
+    return JsonResponse({'success': True, 'message': 'Application submitted successfully!'})
+
+@login_required
+def recently_applied_view(request):
+    applicant = request.user
+    applications = JobApplication.objects.select_related('job').filter(
+        applicant=applicant,
+        job__is_active=True 
+    )
+    return render(request, 'applicant/recently_applied.html', {
+        'applications': applications
     })

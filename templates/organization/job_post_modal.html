@@ -1,67 +1,113 @@
 {% load static %}
 {% load form_tags %}
 
-<button class="btn btn-primary mb-4" data-bs-toggle="modal" data-bs-target="#postJobModal">
-  <i class="bi bi-plus-circle"></i> Post New Job
+<!-- Trigger Button -->
+<button class="pass-sec-btn mb-4" data-bs-toggle="modal" data-bs-target="#postJobModal">
+  <i class="bi bi-plus-circle me-2"></i> Post New Job
 </button>
 
+<!-- Modal -->
 <div class="modal fade" id="postJobModal" tabindex="-1" aria-labelledby="postJobModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-xl">
-    <div class="modal-content">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content border-0 rounded-4 shadow-lg">
+
       <form method="POST" enctype="multipart/form-data" action="{% url 'organization_dashboard' %}">
         {% csrf_token %}
-        <div class="modal-header">
-          <h5 class="modal-title" id="postJobModalLabel">Post a New Job</h5>
+
+        <div class="modal-header border-0 px-4 pt-4">
+          <h5 class="modal-title fw-bold text-primary-dark" id="postJobModalLabel">
+            <i class="bi bi-briefcase-fill me-2"></i>Post a New Job
+          </h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
 
-        <div class="modal-body px-4 py-3">
+        <div class="modal-body px-4 pb-0">
           <div class="row g-4">
+
             <div class="col-md-6">
-              <label class="form-label"><i class="bi bi-briefcase-fill"></i> Job Title</label>
-              <input type="text" name="title" class="form-control" required>
+              <label class="form-label">Job Title</label>
+              <input type="text" name="title" class="form-control shadow-sm" required>
             </div>
+
             <div class="col-md-6">
-              <label class="form-label"><i class="bi bi-toggle2-on"></i> Job Type</label>
-              <select name="job_type" class="form-select" required>
+              <label class="form-label">Job Type</label>
+              <select name="job_type" id="jobTypeSelect" class="form-select" required>
                 <option value="">Select type</option>
                 <option value="full-time">Full-time</option>
                 <option value="part-time">Part-time</option>
                 <option value="volunteer">Volunteer</option>
-              </select>
+              </select>              
             </div>
+
             <div class="col-md-6">
-              <label class="form-label"><i class="bi bi-currency-dollar"></i> Salary</label>
-              <input type="number" step="0.01" name="salary" class="form-control" required>
+              <label class="form-label">Salary</label>
+              <input type="number" step="0.01" name="salary" class="form-control shadow-sm" required>
             </div>
+
             <div class="col-md-6">
-              <label class="form-label"><i class="bi bi-geo-alt-fill"></i> Location</label>
-              <input type="text" name="location" class="form-control" required>
+              <label class="form-label">Location</label>
+              <input type="text" name="location" class="form-control shadow-sm" required>
             </div>
+
             <div class="col-12">
-              <label class="form-label"><i class="bi bi-card-checklist"></i> Requirements</label>
-              <textarea name="requirements" class="form-control" rows="2" required></textarea>
+              <label class="form-label">Requirements</label>
+              <textarea name="requirements" class="form-control shadow-sm" rows="2" required></textarea>
             </div>
+
             <div class="col-md-6">
-              <label class="form-label"><i class="bi bi-calendar-event-fill"></i> Deadline</label>
-              <input type="date" name="deadline" class="form-control" required>
+              <label class="form-label">Deadline</label>
+              <input type="date" name="deadline" class="form-control shadow-sm" required>
             </div>
+
             <div class="col-12">
-              <label class="form-label"><i class="bi bi-align-start"></i> Description</label>
-              <textarea name="description" class="form-control" rows="3" required></textarea>
+              <label class="form-label">Job Description</label>
+              <textarea name="description" class="form-control shadow-sm" rows="3" required></textarea>
             </div>
+
             <div class="col-12">
-              <label class="form-label"><i class="bi bi-image-fill"></i> Job Image</label>
-              <input type="file" name="image" class="form-control">
+              <label class="form-label">Upload Image (Optional)</label>
+              <input type="file" name="image" class="form-control shadow-sm">
             </div>
+
           </div>
         </div>
 
-        <div class="modal-footer px-4">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-success">Create Job</button>
+        <div class="modal-footer border-0 px-4 py-3">
+          <button type="button" class="pass-sec-btn" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="pass-sec-btn">Create Job</button>
         </div>
       </form>
+
     </div>
   </div>
 </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const jobTypeSelect = document.getElementById("jobTypeSelect");
+    const modal = document.getElementById("postJobModal");
+
+    modal.addEventListener("show.bs.modal", function () {
+      fetch('/organization/api/job-types/')
+        .then(res => res.json())
+        .then(data => {
+          console.log(data);
+          jobTypeSelect.innerHTML = '<option value="">Select type</option>'; 
+          const jobTypeLabels = {
+            'full-time': 'Full-Time',
+            'part-time': 'Part-Time',
+            'volunteer': 'Volunteer'
+          };
+
+          data.allowed_types.forEach((type) => {
+            const opt = document.createElement("option");
+            opt.value = type;
+            opt.textContent = jobTypeLabels[type];
+            jobTypeSelect.appendChild(opt);
+          });
+        });
+    });
+  });
+</script>
+
+  

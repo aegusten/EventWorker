@@ -48,19 +48,52 @@
     color: var(--text-subtle);
   }
   
+  .modal-footer .apply-btn,
   .apply-btn {
-    display: inline-block;
-    margin-top: 0.6rem;
     background-color: var(--btn-main);
     color: var(--white);
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 1.2rem;
     text-decoration: none;
-    border-radius: 6px;
-    font-weight: bold;
-    transition: background 0.2s;
+    border-radius: 10px;
+    font-weight: 600;
+    border: none;
+    transition: background 0.2s ease;
   }
-  
+
   .apply-btn:hover {
     background-color: var(--btn-hover);
+  }
+
+  .apply-btn:disabled {
+    background-color: gray;
+    cursor: not-allowed;
+    opacity: 0.7;
+    transition: background 0.3s ease, opacity 0.3s ease;
+  }
+  .job-image {
+    object-fit: cover;
+    background-color: #f0f0f0;
+  }
+  
+  .custom-alert {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--btn-main);
+    color: var(--white);
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s ease;
+    z-index: 9999;
+  }
+  
+  .custom-alert.show {
+    opacity: 1;
+    visibility: visible;
   }
   

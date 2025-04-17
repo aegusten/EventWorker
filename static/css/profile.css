@@ -53,7 +53,6 @@
     text-decoration: underline;
   }
   
-  /* Header reuse */
   .main-header {
     background-color: var(--bg-secondary);
     padding: 1rem 2rem;
@@ -147,17 +146,14 @@
     color: #721c24;
   }
   
-  /* Forgot password modal */
-/* Reset default margins and padding */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-/* Modal overlay */
 .modal {
-  display: none; /* Hidden by default */
+  display: none; 
   position: fixed;
   z-index: 9999;
   left: 0;
@@ -165,29 +161,28 @@
   width: 100%;
   height: 100%;
   overflow-y: auto;
-  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+  background-color: rgba(0, 0, 0, 0.5); 
 }
 
-/* Modal content box */
+
 .modal-content {
   background: white;
   border-radius: 12px;
   padding: 2rem;
   max-width: 600px;
-  width: 90%; /* Responsive width */
-  margin: 5% auto; /* Centered vertically and horizontally */
+  width: 90%; 
+  margin: 5% auto; 
   position: relative;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Headings */
+
 h3 {
   margin-bottom: 1.5rem;
   font-size: 1.5rem;
   text-align: center;
 }
 
-/* Form inputs */
 .form-control {
   width: 100%;
   padding: 0.75rem;
@@ -197,14 +192,12 @@ h3 {
   font-size: 1rem;
 }
 
-/* Labels */
 label {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: bold;
 }
 
-/* Primary buttons */
 .modal-btn {
   width: 100%;
   padding: 0.75rem;
@@ -222,7 +215,6 @@ label {
   background-color: #355c5b;
 }
 
-/* Alternative buttons (e.g., Verify, Back) */
 .modal-btn-alt {
   width: 100%;
   padding: 0.75rem;
@@ -240,19 +232,16 @@ label {
   background-color: #355c5b;
 }
 
-/* Error messages */
 .text-danger {
   color: red;
   font-size: 0.9rem;
   margin-top: 0.5rem;
 }
 
-/* Margin bottom utility */
 .mb-2 {
   margin-bottom: 0.5rem;
 }
 
-/* Open modal button (outside modal) */
 #openPasswordModal {
   padding: 0.75rem 1.5rem;
   background: #497675;
@@ -265,4 +254,15 @@ label {
 
 #openPasswordModal:hover {
   background-color: #355c5b;
+}
+
+.password-step {
+  display: none;
+}
+
+#passwordModal .modal-btn-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
 }
