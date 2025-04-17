@@ -6,6 +6,10 @@ from .forms import JobPostingForm
 from users.models import Organization
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
+from django.core.paginator import Paginator
+from django.http import FileResponse
+import os
+from django.conf import settings
 
 @login_required
 def organization_dashboard(request):
@@ -73,10 +77,16 @@ def organization_profile_view(request):
 @login_required
 def view_applicants(request, job_id):
     job = get_object_or_404(JobPosting, id=job_id, org=request.user)
-    applicants = job.applications.all()
+    applicants_list = job.applications.all().order_by('-id')  
+
+    paginator = Paginator(applicants_list, 3)  
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     return render(request, 'organization/view_applicants.html', {
         'job': job,
-        'applicants': applicants
+        'applicants': page_obj, 
+        'page_obj': page_obj
     })
 
 @login_required
@@ -134,5 +144,21 @@ def reject_applicant(request, app_id):
     application = get_object_or_404(JobApplication, id=app_id)
     application.status = 'rejected'
     application.save()
-    messages.success(request, "Applicant rejected successfully.")
+    messages.error(request, "Applicant rejected successfully.")
     return redirect('view_applicants', job_id=application.job.id)
+
+
+@login_required
+def download_cv(request, applicant_id):
+    app = get_object_or_404(JobApplication, id=applicant_id)
+    if not app.applicant.cv:
+        return JsonResponse({'error': 'No CV found'}, status=404)
+    
+    file_path = app.applicant.cv.path
+    file_name = os.path.basename(file_path)
+    
+    if app.job.org != request.user:
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+
+    response = FileResponse(open(file_path, 'rb'), as_attachment=True, filename=file_name)
+    return response

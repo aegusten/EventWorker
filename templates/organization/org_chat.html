@@ -1,35 +1,92 @@
-<div class="chat-wrapper">
-    <h4>Messages</h4>
-  
-    <div class="chat-conversations">
-        <ul>
-            <li><strong>Applicant A</strong> – Web Developer</li>
-            <li><strong>Applicant B</strong> – Event Planner</li>
-            <li><strong>Applicant C</strong> – IT Support</li>
-        </ul>
-    </div>
+{% extends "base.html" %}
+{% load static %}
 
-    <div class="chat-box">
-        <div class="chat-title"><strong>Chat with Applicant A</strong></div>
+{% block content %}
+<div class="org-wrapper">
+  <div class="org-dashboard-layout">
+    {% include "organization/org_sidebar.html" %}
 
-        <div class="chat-messages">
-            <div class="chat-message company">
-                <span>Hi, we received your application. Can you provide more details about your experience?</span>
-                <small>10:23 AM</small>
+    <section class="main-content">
+      {% include "organization/org_header.html" %}
+
+      <div class="chat-wrapper d-flex" style="height: 85vh;">
+        <!-- LEFT: Chat List -->
+        <aside class="chat-sidebar" style="width: 340px; background-color: var(--bg-secondary); color: white; flex-shrink: 0; display: flex; flex-direction: column;">
+          <div style="padding: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <h5 class="mb-3">Chats</h5>
+            <input type="text" placeholder="Search..." class="form-control form-control-sm rounded-pill shadow-sm">
+          </div>
+          <ul class="list-unstyled flex-grow-1 overflow-auto px-2 py-2">
+            <li class="d-flex align-items-center gap-2 p-2 rounded-3 mb-2 bg-white bg-opacity-10 chat-item active" style="cursor: pointer;">
+              <img src="{% static 'images/avatar1.png' %}" class="rounded-circle" width="45" height="45">
+              <div class="flex-grow-1">
+                <div class="fw-bold">Ali Ahmad</div>
+                <div class="small text-light">Web Developer</div>
+              </div>
+              <small>10:26 AM</small>
+            </li>
+            <li class="d-flex align-items-center gap-2 p-2 rounded-3 mb-2 chat-item" style="cursor: pointer;">
+              <img src="{% static 'images/avatar2.png' %}" class="rounded-circle" width="45" height="45">
+              <div class="flex-grow-1">
+                <div class="fw-bold">Sara Lim</div>
+                <div class="small text-light">Event Planner</div>
+              </div>
+              <small>Yesterday</small>
+            </li>
+            <li class="d-flex align-items-center gap-2 p-2 rounded-3 chat-item" style="cursor: pointer;">
+              <img src="{% static 'images/avatar3.png' %}" class="rounded-circle" width="45" height="45">
+              <div class="flex-grow-1">
+                <div class="fw-bold">John Tan</div>
+                <div class="small text-light">IT Support</div>
+              </div>
+              <small>2 days ago</small>
+            </li>
+          </ul>
+        </aside>
+
+        <!-- RIGHT: Chat Window -->
+        <div class="chat-main d-flex flex-column flex-grow-1" style="background-color: var(--bg-main);">
+          <!-- Top header -->
+          <div class="d-flex align-items-center justify-content-between border-bottom px-4 py-3 bg-white">
+            <div class="d-flex align-items-center gap-3">
+              <img src="{% static 'images/avatar1.png' %}" class="rounded-circle" width="45" height="45">
+              <div>
+                <div class="fw-bold">Ali Ahmad</div>
+                <div class="small text-muted">Web Developer</div>
+              </div>
             </div>
-            <div class="chat-message you">
-                <span>Sure! I have 5 years of experience in web development...</span>
-                <small>10:25 AM</small>
+            <div class="text-muted fs-5">
+              <i class="bi bi-telephone me-4"></i>
+              <i class="bi bi-camera-video"></i>
             </div>
-            <div class="chat-message company">
-                <span>Thanks for the info. We’ll be in touch soon!</span>
-                <small>10:26 AM</small>
+          </div>
+
+          <!-- Message Area -->
+          <div class="flex-grow-1 px-4 py-3 overflow-auto d-flex flex-column gap-3" style="background-color: #e6eeee;">
+            <div class="align-self-start">
+              <div class="bg-white shadow-sm rounded-3 px-4 py-2 mb-1">Hi, thanks for applying! Can you tell us more about your experience?</div>
+              <small class="text-muted">10:23 AM</small>
             </div>
+            <div class="align-self-end text-end">
+              <div class="bg-success text-white rounded-3 px-4 py-2 mb-1">Sure! I’ve been working with Django and React for 3 years now.</div>
+              <small class="text-muted">10:25 AM</small>
+            </div>
+            <div class="align-self-start">
+              <div class="bg-white shadow-sm rounded-3 px-4 py-2 mb-1">That’s great! We’ll get back to you soon.</div>
+              <small class="text-muted">10:26 AM</small>
+            </div>
+          </div>
+
+          <!-- Message Input -->
+          <form class="border-top px-4 py-3 d-flex align-items-center gap-3 bg-white">
+            <input type="text" placeholder="Type a message..." class="form-control rounded-pill shadow-sm">
+            <button type="submit" class="btn btn-success rounded-circle d-flex justify-content-center align-items-center" style="width: 45px; height: 45px;">
+              <i class="bi bi-send-fill fs-5 text-white"></i>
+            </button>
+          </form>
         </div>
-
-        <form class="chat-form">
-            <input type="text" placeholder="Type your message..." class="chat-input">
-            <button type="submit" class="chat-send">Send</button>
-        </form>
-    </div>
+      </div>
+    </section>
+  </div>
 </div>
+{% endblock %}

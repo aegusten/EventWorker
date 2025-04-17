@@ -8,14 +8,20 @@
     <section class="main-content">
       {% include "organization/org_header.html" %}
 
-      <div class="container mt-4">
-        <h2 class="mb-4 text-primary">Applicants for "{{ job.title }}"</h2>
-        <a href="{% url 'organization_dashboard' %}" class="back-btn mb-3">← Back to Dashboard</a>
+      <div class="text-center mb-3">
+        <h2 class="applicants-heading text-primary-dark">
+          <i class="bi bi-people-fill me-2"></i>
+          Applicants for <span class="job-title">"{{ job.title }}"</span>
+        </h2>        
+      </div>
+      <div class="mb-4">
+        <a href="{% url 'organization_dashboard' %}" class="back-btn">← Back to Dashboard</a>
+      </div>      
 
         {% if applicants %}
         <div class="applicant-cards">
           {% for app in applicants %}
-          <div class="applicant-card">
+          <div class="applicant-card border border-light shadow-sm p-4 rounded-4 bg-white">
             <div class="header">{{ app.applicant.full_name }}</div>
             <div class="details">
               <div><strong>Email:</strong> {{ app.applicant.email }}</div>
@@ -23,30 +29,51 @@
               <div><strong>Age:</strong> {{ app.applicant.age|default:"—" }}</div>
               <div><strong>Skills:</strong> {{ app.applicant.skills|default:"—" }}</div>
               <div><strong>Location:</strong> {{ app.applicant.city|default:"—" }}</div>
-              <div><strong>Status:</strong> <span class="badge bg-{{ app.status|yesno:'success,warning,danger' }}">{{ app.status }}</span></div>
+              <div><strong>Status:</strong> 
+                {% if app.status == "accepted" %}
+              <span class="badge bg-success">{{ app.status }}</span>
+                {% elif app.status == "rejected" %}
+              <span class="badge bg-danger">{{ app.status }}</span>
+                {% else %}
+              <span class="badge bg-warning text-dark">{{ app.status }}</span>
+                {% endif %}
+              </div>
             </div>
             <div class="action-buttons">
-              <a href="{% url 'accept_applicant' app.id %}" class="accept-btn">Accept</a>
-              <a href="{% url 'reject_applicant' app.id %}" class="reject-btn">Reject</a>
+              <a href="{% url 'accept_applicant' app.id %}" class="pass-sec-btn btn-sm">Accept</a>
+              <a href="{% url 'reject_applicant' app.id %}" class="pass-sec-btn btn-sm" style="background-color: #dc3545;">Reject</a>
               {% if app.applicant.cv %}
-              <a href="{{ app.applicant.cv.url }}" class="cv-btn" target="_blank">View CV</a>
+              <a href="{% url 'download_cv' app.id %}" class="pass-sec-btn btn-sm">Download CV</a>
               {% else %}
-              <span>No CV</span>
+                <span>No CV</span>
               {% endif %}
-            </div>
+            </div>            
           </div>
           {% endfor %}
         </div>
 
         <!-- Pagination -->
+        {% if page_obj.paginator.num_pages > 1 %}
         <div class="custom-pagination">
           <ul>
-            <li class="active"><span>1</span></li>
-            <li><a href="#">2</a></li>
-            <li><a href="#">3</a></li>
-            <li><a href="#">Next</a></li>
+            {% if page_obj.has_previous %}
+              <li><a href="?page={{ page_obj.previous_page_number }}">← Prev</a></li>
+            {% endif %}
+
+            {% for page_num in page_obj.paginator.page_range %}
+              {% if page_obj.number == page_num %}
+                <li class="active"><span>{{ page_num }}</span></li>
+              {% else %}
+                <li><a href="?page={{ page_num }}">{{ page_num }}</a></li>
+              {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+              <li><a href="?page={{ page_obj.next_page_number }}">Next →</a></li>
+            {% endif %}
           </ul>
         </div>
+        {% endif %}
 
         {% else %}
         <div class="alert alert-info mt-3">No applicants have applied for this job yet.</div>

@@ -78,6 +78,12 @@
   background-color: var(--btn-hover);
   color: white;
 }
+a.pass-sec-btn {
+  text-decoration: none !important;
+}
+a.pass-sec-btn:hover {
+  text-decoration: none !important;
+}
 
 
 .org-wrapper .sidebar {
@@ -212,3 +218,4 @@
 .org-wrapper .sidebar-link:hover i {
   transform: scale(1.1);
 }
+
