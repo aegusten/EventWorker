@@ -2,8 +2,9 @@
   <h4>Quick Info</h4>
   <ul>
     <li><a href="{% url 'recently_applied' %}">Recently Applied</a></li>
-    <li><a href="{% url 'main_chat' job.id %}">Messages</a></li> 
+    {% comment %} <a href="{% url 'chat_view' job_id=job.id %}">Chat</a> {% endcomment %}
   </ul>
+
 
   {% if page_obj.has_other_pages %}
   <div class="pag-sidebar-wrapper">

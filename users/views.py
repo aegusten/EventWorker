@@ -109,6 +109,7 @@ def applicant_dashboard(request):
         'query': query,
         'job_type': job_type,
         'has_visible_jobs': has_visible_jobs,
+        'jobs': jobs,
     }
     return render(request, 'dashboards/applicant_dashboard.html', context)
 
@@ -173,3 +174,11 @@ def submit_feedback(request, app_id):
             messages.warning(request, "Feedback cannot be empty.")
 
     return redirect("recently_applied")
+
+@login_required
+def chat_view(request, job_id):
+    job = get_object_or_404(JobPosting, id=job_id)
+
+    return render(request, 'applicant/chat.html', {
+        'job': job
+    })

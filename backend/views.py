@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import JobPosting
+from .models import JobPosting, JobApplication
 from .forms import JobPostingForm
 from users.models import Organization
 from django.http import JsonResponse
@@ -80,11 +80,6 @@ def view_applicants(request, job_id):
     })
 
 @login_required
-def shortlist_job(request, job_id):
-    job = get_object_or_404(JobPosting, id=job_id, org=request.user)
-    return redirect('organization_dashboard')
-
-@login_required
 def message_applicants(request, job_id):
     job = get_object_or_404(JobPosting, id=job_id, org=request.user)
     if request.method == 'POST':
@@ -107,7 +102,7 @@ def delete_job(request, job_id):
 
 @login_required
 def chat_view(request):
-    return render(request, 'dashboards/org_chat.html')
+    return render(request, 'organization/org_chat.html')
 
 @login_required
 @require_GET
@@ -124,3 +119,20 @@ def get_allowed_job_types(request):
     print(f"[DEBUG] Org: {org.organization_name}, Type: {org.company_type}, Allowed Job Types: {allowed}")
 
     return JsonResponse({'allowed_types': allowed})
+
+
+@login_required
+def accept_applicant(request, app_id):
+    application = get_object_or_404(JobApplication, id=app_id)
+    application.status = 'accepted'
+    application.save()
+    messages.success(request, "Applicant accepted successfully.")
+    return redirect('view_applicants', job_id=application.job.id)
+
+@login_required
+def reject_applicant(request, app_id):
+    application = get_object_or_404(JobApplication, id=app_id)
+    application.status = 'rejected'
+    application.save()
+    messages.success(request, "Applicant rejected successfully.")
+    return redirect('view_applicants', job_id=application.job.id)

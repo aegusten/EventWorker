@@ -1,5 +1,3 @@
-print(">>> LOADED: core.views ✅")
-
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.csrf import csrf_exempt
@@ -9,6 +7,7 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 
 import json
+from django.db import models 
 from .forms import LoginForm
 from django.contrib import messages
 from django.http import JsonResponse
@@ -400,22 +399,19 @@ def change_password(request):
     return JsonResponse({'success': True})
 
 @login_required
-def chat_view(request, job_id=None):
-    applicant = request.user
+def chat_view(request, job_id):
     job = get_object_or_404(JobPosting, id=job_id)
-    
     organization = job.org
-
     existing_messages = Message.objects.filter(
-        (models.Q(sender=applicant) & models.Q(receiver=organization) & models.Q(job=job)) |
-        (models.Q(sender=organization) & models.Q(receiver=applicant) & models.Q(job=job))
+        (models.Q(sender=request.user) & models.Q(receiver=organization) & models.Q(job=job)) |
+        (models.Q(sender=organization) & models.Q(receiver=request.user) & models.Q(job=job))
     )
 
     if request.method == 'POST':
         message_content = request.POST.get('message')
         if message_content:
             Message.objects.create(
-                sender=applicant,
+                sender=request.user,
                 receiver=organization,
                 job=job,
                 content=message_content
