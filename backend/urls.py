@@ -11,4 +11,5 @@ urlpatterns = [
     path('api/job-types/', views.get_allowed_job_types, name='get_allowed_job_types'),
     path('applicant/accept/<int:app_id>/', views.accept_applicant, name='accept_applicant'),
     path('applicant/reject/<int:app_id>/', views.reject_applicant, name='reject_applicant'),
+    path('download_cv/<int:applicant_id>/', views.download_cv, name='download_cv'),
 ]

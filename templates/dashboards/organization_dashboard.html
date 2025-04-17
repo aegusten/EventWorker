@@ -25,10 +25,9 @@
                 <p class="card-text"><strong>Deadline:</strong> {{ job.deadline }}</p>
         
                 <div class="d-flex flex-wrap gap-2">
-                  <a href="{% url 'view_applicants' job.id %}" class="btn btn-outline-primary btn-sm">Applicants</a>
-
-                  <button class="btn btn-outline-dark btn-sm" data-bs-toggle="modal" data-bs-target="#viewJobModal{{ job.id }}">View</button>
-                  <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteJobModal{{ job.id }}">Delete</button>
+                  <a href="{% url 'view_applicants' job.id %}" class="pass-sec-btn btn-sm">Applicants</a>
+                  <button class="pass-sec-btn btn-sm" data-bs-toggle="modal" data-bs-target="#viewJobModal{{ job.id }}">View</button>
+                  <button class="pass-sec-btn btn-sm" data-bs-toggle="modal" data-bs-target="#deleteJobModal{{ job.id }}">Delete</button>
 
                     <div class="modal fade" id="deleteJobModal{{ job.id }}" tabindex="-1" aria-labelledby="deleteJobLabel{{ job.id }}" aria-hidden="true">
                       <div class="modal-dialog modal-dialog-centered">
@@ -41,8 +40,8 @@
                             Are you sure you want to delete the job <strong>{{ job.title }}</strong>?
                           </div>
                           <div class="modal-footer">
-                            <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="button" class="btn btn-danger delete-job-btn" data-id="{{ job.id }}">Delete</button>
+                            <button type="button" class="pass-sec-btn" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="pass-sec-btn delete-job-btn" data-id="{{ job.id }}">Delete</button>
                           </div>
                         </div>
                       </div>
@@ -71,7 +70,7 @@
                   <p><strong>Description:</strong> {{ job.description }}</p>
                 </div>
                 <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                  <button type="button" class="pass-sec-btn" data-bs-dismiss="modal">Close</button>
                 </div>
               </div>
             </div>
