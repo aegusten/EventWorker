@@ -4,17 +4,24 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404
-from django.contrib.auth.decorators import login_required
-
+from django.http import Http404
 import json
 from django.db import models 
-from .forms import LoginForm
 from django.contrib import messages
 from django.http import JsonResponse
 from backend.models import Message
+from django.db.models import Q
+from .utils import get_user_conversations
+
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth import get_user_model
+from backend.utils import get_chat_contacts_for_user
+User = get_user_model()
 
 from backend.models import (
-    JobPosting
+    JobPosting,
+    Message,
+    JobApplication,
 )
 
 from .forms import (
@@ -61,7 +68,6 @@ def login_view(request):
                 return redirect('login')
 
     return render(request, 'login.html', context)
-
 
 def logout_view(request):
     logout(request)
@@ -398,27 +404,144 @@ def change_password(request):
     print("Password successfully updated")
     return JsonResponse({'success': True})
 
+
+def get_target_user(user_id):
+    try:
+        return Applicant.objects.get(pk=user_id)
+    except Applicant.DoesNotExist:
+        try:
+            return Organization.objects.get(pk=user_id)
+        except Organization.DoesNotExist:
+            raise Http404("No user matches the given query.")
+        
+def get_user_conversations(user):
+    user_ct = ContentType.objects.get_for_model(user.__class__)
+    
+    messages = Message.objects.filter(
+        models.Q(sender_content_type=user_ct, sender_object_id=user.id) |
+        models.Q(receiver_content_type=user_ct, receiver_object_id=user.id)
+    ).select_related('job')
+
+    conversation_map = {}
+    
+    for msg in messages:
+        if msg.sender == user:
+            partner = msg.receiver
+        else:
+            partner = msg.sender
+
+        key = (partner, msg.job)
+        if key not in conversation_map or msg.timestamp > conversation_map[key].timestamp:
+            conversation_map[key] = msg
+
+    sorted_conversations = sorted(conversation_map.items(), key=lambda x: x[1].timestamp, reverse=True)
+
+    return sorted_conversations
+
 @login_required
-def chat_view(request, job_id):
+def chat_with_user_view(request, job_id, target_user_id):
     job = get_object_or_404(JobPosting, id=job_id)
-    organization = job.org
-    existing_messages = Message.objects.filter(
-        (models.Q(sender=request.user) & models.Q(receiver=organization) & models.Q(job=job)) |
-        (models.Q(sender=organization) & models.Q(receiver=request.user) & models.Q(job=job))
-    )
+    current_user = request.user
+
+    if hasattr(current_user, 'license_number'):
+        target_user = get_object_or_404(Applicant, id=target_user_id)
+    elif hasattr(current_user, 'id_number'):
+        target_user = job.org
+        if target_user.id != target_user_id:
+        
+            raise Http404("Mismatched organization ID.")
+    else:
+        raise Http404("Unknown user type.")
+
+    if current_user == target_user:
+        return JsonResponse({'error': 'Cannot message yourself.'}, status=400)
+
+    if not job.is_active or not target_user.is_active:
+        return render(request, 'applicant/chat.html', {
+            'job': job,
+            'target_user': target_user,
+            'messages': [],
+            'conversations': []
+        })
+
+    current_user_ct = ContentType.objects.get_for_model(current_user.__class__)
+    target_user_ct = ContentType.objects.get_for_model(target_user.__class__)
+
+    messages_qs = Message.objects.filter(job=job).filter(
+        Q(sender_content_type=current_user_ct, sender_object_id=current_user.id,
+          receiver_content_type=target_user_ct, receiver_object_id=target_user.id)
+        |
+        Q(sender_content_type=target_user_ct, sender_object_id=target_user.id,
+          receiver_content_type=current_user_ct, receiver_object_id=current_user.id)
+    ).order_by("timestamp")
+
+    conversations = [
+        (partner, job) for (partner, job), last_msg in get_user_conversations(user)
+        if partner.is_active
+    ]
 
     if request.method == 'POST':
-        message_content = request.POST.get('message')
-        if message_content:
+        content = request.POST.get("message", "").strip()
+        if content:
             Message.objects.create(
-                sender=request.user,
-                receiver=organization,
+                sender=current_user,
+                receiver=target_user,
                 job=job,
-                content=message_content
+                content=content
             )
+        return redirect('chat_with_user', job_id=job.id, target_user_id=target_user.id)
 
-    return render(request, 'applicant/chat.html', {
+    context = {
         'job': job,
-        'organization': organization,
-        'messages': existing_messages,
-    })
+        'target_user': target_user,
+        'messages': messages_qs,
+        'conversations': conversations,
+    }
+
+    if hasattr(current_user, 'license_number'):
+        return render(request, 'organization/org_chat.html', context)
+    else:
+        return render(request, 'applicant/main_chat.html', context)
+
+@login_required
+def terminate_account(request):
+    user = request.user
+    print("Terminate request received for:", user)
+
+    if isinstance(user, Applicant):
+        print("User is applicant")
+        user.is_active = False
+        user.save()
+
+        apps = JobApplication.objects.filter(applicant=user)
+        apps.update(is_active=False)
+        print(f"Applications deactivated: {apps.count()}")
+        msg_qs = Message.objects.filter(
+            Q(sender_object_id=user.id) | Q(receiver_object_id=user.id)
+        )
+        msg_qs.update(is_active=False)
+        print(f"Messages deactivated: {msg_qs.count()}")
+
+    elif isinstance(user, Organization):
+        print("User is organization")
+        user.is_active = False
+        user.save()
+
+        jobs = JobPosting.objects.filter(org=user)
+        jobs.update(is_active=False)
+        print(f"Jobs deactivated: {jobs.count()}")
+
+        apps = JobApplication.objects.filter(job__in=jobs)
+        apps.update(is_active=False)
+        print(f"Applications deactivated: {apps.count()}")
+        msg_qs = Message.objects.filter(
+            Q(sender_object_id=user.id) | Q(receiver_object_id=user.id)
+        )
+        msg_qs.update(is_active=False)
+        print(f"Messages deactivated: {msg_qs.count()}")
+
+    else:
+        print("Unknown user type")
+
+    logout(request)
+    return redirect("login")

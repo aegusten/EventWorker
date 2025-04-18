@@ -7,25 +7,89 @@
         {% else %}
           <div class="job-placeholder">No Image</div>
         {% endif %}
+
         <div class="job-info">
           <h3>{{ app.job.title }}</h3>
           <p><strong>{{ app.job.get_job_type_display }}</strong></p>
           <p>{{ app.job.location }}</p>
-          <p><strong>Status:</strong> {{ app.get_status_display }}</p>
-          <div class="d-flex justify-content-between mt-2">
-            {% if app.status != 'rejected' %}
-              <a href="#" class="apply-btn chat-btn" data-job-id="{{ app.job.id }}">Chat</a>
-            {% else %}
+          <p><strong>Status:</strong>
+            {% if app.status == 'accepted' %}
+              <span class="text-success fw-bold">Accepted</span>
+            {% elif app.status == 'rejected' %}
               <span class="text-danger fw-bold">Rejected</span>
+            {% else %}
+              <span class="text-warning fw-bold">{{ app.get_status_display }}</span>
+            {% endif %}
+          </p>
+
+          <div class="d-flex justify-content-between mt-2">
+            {% if app.status == 'accepted' and not app.feedback and app.id %}
+              <a href="#" class="apply-btn" data-bs-toggle="modal" data-bs-target="#feedbackModal{{ app.id }}">Leave Feedback</a>
+            {% endif %}
+
+            {% if app.status != 'rejected' and app.job and app.job.org and app.job.org.is_active %}
+              <a href="{% url 'chat_with_user' app.job.id app.job.org.id %}" class="apply-btn">Chat</a>
             {% endif %}
           </div>
         </div>
       </div>
-    {% endfor %}
 
+      {% if app.status == 'accepted' and not app.feedback and app.id %}
+        <!-- Feedback Modal -->
+        <div class="modal fade" id="feedbackModal{{ app.id }}" tabindex="-1" aria-labelledby="feedbackLabel{{ app.id }}" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content p-3">
+              <div class="modal-header">
+                <h5 class="modal-title" id="feedbackLabel{{ app.id }}">Leave Feedback for "{{ app.job.title }}"</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <form method="POST" action="{% url 'submit_feedback' app.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                  <textarea name="feedback" class="form-control" placeholder="Write your feedback here..." rows="5" required></textarea>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                  <button type="submit" class="btn btn-success">Submit</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+
+    {% endfor %}
   {% else %}
     <div class="w-100 text-center py-5">
       <h5 class="text-muted">No jobs were applied.</h5>
     </div>
   {% endif %}
 </div>
+
+
+<style>
+  textarea.form-control {
+    resize: vertical;
+    border-radius: 6px;
+    box-shadow: none;
+  }
+
+  .modal-footer .btn {
+    min-width: 100px;
+  }
+
+  .apply-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    border-radius: 6px;
+    background-color: #4c7273;
+    color: white;
+    text-decoration: none;
+    transition: background 0.3s ease;
+  }
+
+  .apply-btn:hover {
+    background-color: #365c5c;
+    color: white;
+  }
+</style>

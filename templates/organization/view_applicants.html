@@ -14,71 +14,76 @@
           Applicants for <span class="job-title">"{{ job.title }}"</span>
         </h2>        
       </div>
+
       <div class="mb-4">
-        <a href="{% url 'organization_dashboard' %}" class="back-btn">← Back to Dashboard</a>
+        <a href="{% url 'organization_dashboard' %}" class="back-btn">Back to Dashboard</a>
       </div>      
 
-        {% if applicants %}
-        <div class="applicant-cards">
-          {% for app in applicants %}
-          <div class="applicant-card border border-light shadow-sm p-4 rounded-4 bg-white">
-            <div class="header">{{ app.applicant.full_name }}</div>
-            <div class="details">
-              <div><strong>Email:</strong> {{ app.applicant.email }}</div>
-              <div><strong>Phone:</strong> {{ app.applicant.phone_number|default:"—" }}</div>
-              <div><strong>Age:</strong> {{ app.applicant.age|default:"—" }}</div>
-              <div><strong>Skills:</strong> {{ app.applicant.skills|default:"—" }}</div>
-              <div><strong>Location:</strong> {{ app.applicant.city|default:"—" }}</div>
-              <div><strong>Status:</strong> 
-                {% if app.status == "accepted" %}
-              <span class="badge bg-success">{{ app.status }}</span>
-                {% elif app.status == "rejected" %}
-              <span class="badge bg-danger">{{ app.status }}</span>
-                {% else %}
-              <span class="badge bg-warning text-dark">{{ app.status }}</span>
-                {% endif %}
-              </div>
+      {% if applicants %}
+      <div class="applicant-cards">
+        {% for app in applicants %}
+        <div class="applicant-card border border-light shadow-sm p-4 rounded-4 bg-white">
+          <div class="header">{{ app.applicant.full_name }}</div>
+          <div class="details">
+            <div><strong>Email:</strong> {{ app.applicant.email }}</div>
+            <div><strong>Phone:</strong> {{ app.applicant.phone_number|default:"—" }}</div>
+            <div><strong>Age:</strong> {{ app.applicant.age|default:"—" }}</div>
+            <div><strong>Skills:</strong> {{ app.applicant.skills|default:"—" }}</div>
+            <div><strong>Location:</strong> {{ app.applicant.country|default:"—" }}</div>
+            <div><strong>Status:</strong> 
+              {% if app.status == "accepted" %}
+                <span class="badge bg-success">{{ app.status }}</span>
+              {% elif app.status == "rejected" %}
+                <span class="badge bg-danger">{{ app.status }}</span>
+              {% else %}
+                <span class="badge bg-warning text-dark">{{ app.status }}</span>
+              {% endif %}
             </div>
-            <div class="action-buttons">
-              <a href="{% url 'accept_applicant' app.id %}" class="pass-sec-btn btn-sm">Accept</a>
-              <a href="{% url 'reject_applicant' app.id %}" class="pass-sec-btn btn-sm" style="background-color: #dc3545;">Reject</a>
-              {% if app.applicant.cv %}
-              <a href="{% url 'download_cv' app.id %}" class="pass-sec-btn btn-sm">Download CV</a>
-              {% else %}
-                <span>No CV</span>
-              {% endif %}
-            </div>            
           </div>
-          {% endfor %}
-        </div>
+          {% if app.feedback %}
+            <div><strong>Feedback:</strong><br> {{ app.feedback }}</div>
+          {% endif %}
+        
 
-        <!-- Pagination -->
-        {% if page_obj.paginator.num_pages > 1 %}
-        <div class="custom-pagination">
-          <ul>
-            {% if page_obj.has_previous %}
-              <li><a href="?page={{ page_obj.previous_page_number }}">← Prev</a></li>
+          <div class="action-buttons">
+            <a href="{% url 'accept_applicant' app.id %}" class="pass-sec-btn btn-sm">Accept</a>
+            <a href="{% url 'reject_applicant' app.id %}" class="pass-sec-btn btn-sm reject-btn">Reject</a>
+            {% if app.applicant.cv %}
+              <a href="{% url 'download_cv' app.id %}" class="pass-sec-btn btn-sm">Download CV</a>
+            {% else %}
+              <span class="pass-sec-btn btn-sm disabled">No CV</span>
             {% endif %}
-
-            {% for page_num in page_obj.paginator.page_range %}
-              {% if page_obj.number == page_num %}
-                <li class="active"><span>{{ page_num }}</span></li>
-              {% else %}
-                <li><a href="?page={{ page_num }}">{{ page_num }}</a></li>
-              {% endif %}
-            {% endfor %}
-
-            {% if page_obj.has_next %}
-              <li><a href="?page={{ page_obj.next_page_number }}">Next →</a></li>
-            {% endif %}
-          </ul>
+            <a href="{% url 'chat_with_user' job.id app.applicant.id %}" class="pass-sec-btn btn-sm">Message</a>
+          </div>
         </div>
-        {% endif %}
-
-        {% else %}
-        <div class="alert alert-info mt-3">No applicants have applied for this job yet.</div>
-        {% endif %}
+        {% endfor %}
       </div>
+
+      {% if page_obj.paginator.num_pages > 1 %}
+      <div class="custom-pagination">
+        <ul>
+          {% if page_obj.has_previous %}
+            <li><a href="?page={{ page_obj.previous_page_number }}">← Prev</a></li>
+          {% endif %}
+
+          {% for page_num in page_obj.paginator.page_range %}
+            {% if page_obj.number == page_num %}
+              <li class="active"><span>{{ page_num }}</span></li>
+            {% else %}
+              <li><a href="?page={{ page_num }}">{{ page_num }}</a></li>
+            {% endif %}
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+            <li><a href="?page={{ page_obj.next_page_number }}">Next →</a></li>
+          {% endif %}
+        </ul>
+      </div>
+      {% endif %}
+
+      {% else %}
+        <div class="alert alert-info mt-3">No applicants have applied for this job yet.</div>
+      {% endif %}
     </section>
   </div>
 </div>

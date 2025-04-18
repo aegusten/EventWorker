@@ -10,6 +10,10 @@ from django.core.paginator import Paginator
 from django.http import FileResponse
 import os
 from django.conf import settings
+from core.views import get_user_conversations, get_target_user
+from backend.models import Message
+from django.contrib.contenttypes.models import ContentType
+from django.db.models import Q
 
 @login_required
 def organization_dashboard(request):
@@ -112,7 +116,40 @@ def delete_job(request, job_id):
 
 @login_required
 def chat_view(request):
-    return render(request, 'organization/org_chat.html')
+    user = request.user
+    conversations = get_user_conversations(user)
+
+    if not conversations:
+        return render(request, 'organization/org_chat.html', {
+            'job': None,
+            'target_user': None,
+            'messages': [],
+            'conversations': []
+        })
+
+    (partner, job), last_msg = conversations[0]
+
+    current_user_ct = ContentType.objects.get_for_model(user.__class__)
+    partner_ct = ContentType.objects.get_for_model(partner.__class__)
+
+    messages_qs = Message.objects.filter(
+        job=job
+    ).filter(
+        (
+            Q(sender_content_type=current_user_ct, sender_object_id=user.id,
+              receiver_content_type=partner_ct, receiver_object_id=partner.id)
+            |
+            Q(sender_content_type=partner_ct, sender_object_id=partner.id,
+              receiver_content_type=current_user_ct, receiver_object_id=user.id)
+        )
+    ).order_by("timestamp")
+
+    return render(request, 'organization/org_chat.html', {
+        'job': job,
+        'target_user': partner,
+        'messages': messages_qs,
+        'conversations': conversations
+    })
 
 @login_required
 @require_GET

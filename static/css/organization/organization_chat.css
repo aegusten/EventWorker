@@ -1,4 +1,3 @@
-/* Root Colors */
 :root {
     --bg-main: #d6dddd;
     --bg-secondary: #86b9b0;
@@ -10,7 +9,7 @@
     --input-bg: #f8f9fa;
   }
   
-  /* Layout Base */
+
   .chat-wrapper {
     display: flex;
     height: 85vh;
@@ -19,8 +18,7 @@
     background-color: var(--bg-main);
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
   }
-  
-  /* Sidebar */
+
   .chat-sidebar {
     width: 340px;
     background-color: var(--bg-secondary);
@@ -64,16 +62,14 @@
   .chat-item.active {
     background-color: rgba(255, 255, 255, 0.25);
   }
-  
-  /* Chat Window */
+
   .chat-main {
     flex: 1;
     display: flex;
     flex-direction: column;
     background-color: #e6eeee;
   }
-  
-  /* Header */
+
   .chat-header {
     background-color: var(--white);
     padding: 1rem 1.5rem;
@@ -95,7 +91,6 @@
     margin: 0;
   }
   
-  /* Chat Body */
   .chat-body {
     flex: 1;
     padding: 1.5rem;
@@ -106,7 +101,6 @@
     background-color: #e6eeee;
   }
   
-  /* Bubbles */
   .chat-body .message {
     max-width: 75%;
   }
@@ -142,15 +136,13 @@
     border-bottom-right-radius: 0;
   }
   
-  /* Timestamp */
   .timestamp {
     font-size: 0.75rem;
     color: #6c757d;
     margin-top: 0.25rem;
     display: inline-block;
   }
-  
-  /* Input Area */
+
   .chat-input-area {
     background-color: var(--white);
     padding: 1rem 1.5rem;
@@ -191,7 +183,6 @@
     color: white;
   }
   
-  /* Scrollbar for Sidebar and Chat */
   .chat-contacts::-webkit-scrollbar,
   .chat-body::-webkit-scrollbar {
     width: 6px;

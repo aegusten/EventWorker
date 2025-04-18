@@ -95,10 +95,14 @@
           </div>
           <div>
             <label>CV</label>
-            <input type="file" name="cv">
-            {% if applicant.cv %}
-              <a href="{{ applicant.cv.url }}" target="_blank" class="view-link">View CV</a>
-            {% endif %}
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <input type="file" name="cv">
+              {% if applicant.cv %}
+                  <a href="{% url 'download_cv' %}" class="pass-sec-btn">Download CV</a>
+              {% else %}
+                  <p>No CV uploaded</p>
+              {% endif %}
+            </div>
           </div>
         </div>
       </div>
@@ -108,7 +112,9 @@
         <div class="pass-action-buttons">
           <button id="openPasswordModal" class="pass-sec-btn" type="button">Change Password</button>
           <button id="openSecurityModal" class="pass-sec-btn" type="button">Change Security Questions</button>
-            <button href="#" class="pass-sec-btn">Terminate Account</button>
+          <a href="{% url 'terminate_account' %}" class="pass-sec-btn" onclick="return confirm('Are you sure you want to terminate your account?');">
+            Terminate Account
+          </a>          
         </div>
       </div>
           
