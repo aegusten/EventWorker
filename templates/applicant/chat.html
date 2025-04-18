@@ -18,12 +18,19 @@
                 {{ partner.email }}
               {% endif %}
             </div>
-            <div class="small">{{ last_msg.timestamp|date:"P" }}</div>
+    
+            <div class="small text-muted">
+              {{ job.title }}
+            </div>
+            <div class="small">
+              {{ last_msg.timestamp|date:"P" }}
+            </div>
           </a>
         </li>
         {% endwith %}
       {% endfor %}
     </ul>
+    
   </aside>
 
   <div class="ewchat-main">
