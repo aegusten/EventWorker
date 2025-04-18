@@ -11,6 +11,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from backend.models import Message
 from django.db.models import Q
+from .utils import get_user_conversations
 
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth import get_user_model
@@ -67,7 +68,6 @@ def login_view(request):
                 return redirect('login')
 
     return render(request, 'login.html', context)
-
 
 def logout_view(request):
     logout(request)
@@ -405,7 +405,6 @@ def change_password(request):
     return JsonResponse({'success': True})
 
 
-
 def get_target_user(user_id):
     try:
         return Applicant.objects.get(pk=user_id)
@@ -443,7 +442,19 @@ def get_user_conversations(user):
 def chat_with_user_view(request, job_id, target_user_id):
     job = get_object_or_404(JobPosting, id=job_id)
     current_user = request.user
-    target_user = get_target_user(target_user_id)
+
+    if hasattr(current_user, 'license_number'):
+        target_user = get_object_or_404(Applicant, id=target_user_id)
+    elif hasattr(current_user, 'id_number'):
+        target_user = job.org
+        if target_user.id != target_user_id:
+        
+            raise Http404("Mismatched organization ID.")
+    else:
+        raise Http404("Unknown user type.")
+
+    if current_user == target_user:
+        return JsonResponse({'error': 'Cannot message yourself.'}, status=400)
 
     if not job.is_active or not target_user.is_active:
         return render(request, 'applicant/chat.html', {
@@ -456,16 +467,12 @@ def chat_with_user_view(request, job_id, target_user_id):
     current_user_ct = ContentType.objects.get_for_model(current_user.__class__)
     target_user_ct = ContentType.objects.get_for_model(target_user.__class__)
 
-    messages_qs = Message.objects.filter(
-        job=job
-    ).filter(
-        (
-            Q(sender_content_type=current_user_ct, sender_object_id=current_user.id,
-              receiver_content_type=target_user_ct, receiver_object_id=target_user.id)
-            |
-            Q(sender_content_type=target_user_ct, sender_object_id=target_user.id,
-              receiver_content_type=current_user_ct, receiver_object_id=current_user.id)
-        )
+    messages_qs = Message.objects.filter(job=job).filter(
+        Q(sender_content_type=current_user_ct, sender_object_id=current_user.id,
+          receiver_content_type=target_user_ct, receiver_object_id=target_user.id)
+        |
+        Q(sender_content_type=target_user_ct, sender_object_id=target_user.id,
+          receiver_content_type=current_user_ct, receiver_object_id=current_user.id)
     ).order_by("timestamp")
 
     conversations = get_user_conversations(current_user)
@@ -492,3 +499,46 @@ def chat_with_user_view(request, job_id, target_user_id):
         return render(request, 'organization/org_chat.html', context)
     else:
         return render(request, 'applicant/main_chat.html', context)
+
+@login_required
+def terminate_account(request):
+    user = request.user
+    print("Terminate request received for:", user)
+
+    if isinstance(user, Applicant):
+        print("User is applicant")
+        user.is_active = False
+        user.save()
+
+        apps = JobApplication.objects.filter(applicant=user)
+        apps.update(is_active=False)
+        print(f"Applications deactivated: {apps.count()}")
+        msg_qs = Message.objects.filter(
+            Q(sender_object_id=user.id) | Q(receiver_object_id=user.id)
+        )
+        msg_qs.update(is_active=False)
+        print(f"Messages deactivated: {msg_qs.count()}")
+
+    elif isinstance(user, Organization):
+        print("User is organization")
+        user.is_active = False
+        user.save()
+
+        jobs = JobPosting.objects.filter(org=user)
+        jobs.update(is_active=False)
+        print(f"Jobs deactivated: {jobs.count()}")
+
+        apps = JobApplication.objects.filter(job__in=jobs)
+        apps.update(is_active=False)
+        print(f"Applications deactivated: {apps.count()}")
+        msg_qs = Message.objects.filter(
+            Q(sender_object_id=user.id) | Q(receiver_object_id=user.id)
+        )
+        msg_qs.update(is_active=False)
+        print(f"Messages deactivated: {msg_qs.count()}")
+
+    else:
+        print("Unknown user type")
+
+    logout(request)
+    return redirect("login")

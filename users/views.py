@@ -16,6 +16,9 @@ from core.views import get_user_conversations
 from backend.models import (
     Message,
 )
+from django.http import FileResponse
+
+import os
 from django.db.models import Q
 from django.contrib.contenttypes.models import ContentType
 
@@ -222,3 +225,19 @@ def applicant_chat_view(request):
         'messages': messages_qs,
         'conversations': conversations
     })
+    
+@login_required
+def download_cv(request):
+    applicant = request.user
+
+    if not applicant.cv:
+        return JsonResponse({'error': 'No CV found'}, status=404)
+    
+    file_path = applicant.cv.path
+    file_name = os.path.basename(file_path)
+    
+    try:
+        response = FileResponse(open(file_path, 'rb'), as_attachment=True, filename=file_name)
+        return response
+    except FileNotFoundError:
+        return JsonResponse({'error': 'File not found'}, status=404)

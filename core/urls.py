@@ -19,6 +19,7 @@ from .views import (
     get_security_questions,
     public_verify_security_answers,
     get_security_questions_choices,
+    terminate_account,
 )
 
 urlpatterns = [
@@ -41,8 +42,8 @@ urlpatterns = [
     path('verify_security_answers/', public_verify_security_answers, name='verify_security_answers'),
     path('get_security_questions_choices/', get_security_questions_choices, name='get_security_questions_choices'),
     path('account/', include('users.urls')),
-   path('chat/<int:job_id>/<int:target_user_id>/', views.chat_with_user_view, name='chat_with_user'),
-
+    path('chat/<int:job_id>/<int:target_user_id>/', views.chat_with_user_view, name='chat_with_user'),
+    path('terminate/', terminate_account, name='terminate_account'),
 ]
 
 if settings.DEBUG:

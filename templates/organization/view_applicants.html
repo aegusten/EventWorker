@@ -40,6 +40,10 @@
               {% endif %}
             </div>
           </div>
+          {% if app.feedback %}
+            <div><strong>Feedback:</strong><br> {{ app.feedback }}</div>
+          {% endif %}
+        
 
           <div class="action-buttons">
             <a href="{% url 'accept_applicant' app.id %}" class="pass-sec-btn btn-sm">Accept</a>

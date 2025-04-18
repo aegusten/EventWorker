@@ -41,6 +41,7 @@ class JobApplication(models.Model):
     feedback = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     application_id = models.CharField(max_length=50, unique=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return f"Application {self.application_id} by {self.applicant.id_number}"
@@ -64,6 +65,7 @@ class Message(models.Model):
     )
     receiver_object_id = models.PositiveIntegerField(null=True)
     receiver = GenericForeignKey('receiver_content_type', 'receiver_object_id')
+    is_active = models.BooleanField(default=True)
 
     job = models.ForeignKey(JobPosting, on_delete=models.CASCADE, null=True, blank=True)
     content = models.TextField()

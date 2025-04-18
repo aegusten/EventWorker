@@ -1,94 +1,97 @@
 {% extends "base.html" %}
 {% load static %}
 
-
 {% block content %}
 <div class="org-wrapper">
   <div class="org-dashboard-layout">
     {% include "organization/org_sidebar.html" %}
     <section class="main-content">
       {% include "organization/org_header.html" %}
+
       <section class="job-section">
         <h2>Your Job Postings</h2>
         {% include "organization/job_post_modal.html" %}
+
         <div class="row g-4">
           {% for job in jobs %}
-          <div class="col-md-6" id="jobCard{{ job.id }}">
-            <div class="card h-100 shadow-sm">
-              {% if job.image %}
-              <img src="{{ job.image.url }}" class="card-img-top" alt="{{ job.title }}">
-              {% endif %}
-              <div class="card-body">
-                <h5 class="card-title">{{ job.title }}</h5>
-                <p class="card-text mb-1"><strong>Type:</strong> {{ job.job_type }}</p>
-                <p class="card-text mb-1"><strong>Location:</strong> {{ job.location }}</p>
-                <p class="card-text"><strong>Deadline:</strong> {{ job.deadline }}</p>
-        
-                <div class="d-flex flex-wrap gap-2">
-                  <a href="{% url 'view_applicants' job.id %}" class="pass-sec-btn btn-sm">Applicants</a>
-                  <button class="pass-sec-btn btn-sm" data-bs-toggle="modal" data-bs-target="#viewJobModal{{ job.id }}">View</button>
-                  <button class="pass-sec-btn btn-sm" data-bs-toggle="modal" data-bs-target="#deleteJobModal{{ job.id }}">Delete</button>
+            <div class="col-md-6" id="jobCard{{ job.id }}">
+              <div class="card h-100 shadow-sm">
+                {% if job.image %}
+                  <img src="{{ job.image.url }}" class="card-img-top" alt="{{ job.title }}">
+                {% endif %}
+                <div class="card-body">
+                  <h5 class="card-title">{{ job.title }}</h5>
+                  <p class="card-text mb-1"><strong>Type:</strong> {{ job.job_type }}</p>
+                  <p class="card-text mb-1"><strong>Location:</strong> {{ job.location }}</p>
+                  <p class="card-text"><strong>Deadline:</strong> {{ job.deadline }}</p>
 
-                    <div class="modal fade" id="deleteJobModal{{ job.id }}" tabindex="-1" aria-labelledby="deleteJobLabel{{ job.id }}" aria-hidden="true">
-                      <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-                          <div class="modal-header">
-                            <h5 class="modal-title" id="deleteJobLabel{{ job.id }}">Confirm Deletion</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                          </div>
-                          <div class="modal-body">
-                            Are you sure you want to delete the job <strong>{{ job.title }}</strong>?
-                          </div>
-                          <div class="modal-footer">
-                            <button type="button" class="pass-sec-btn" data-bs-dismiss="modal">Cancel</button>
-                            <button type="button" class="pass-sec-btn delete-job-btn" data-id="{{ job.id }}">Delete</button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
+                  <div class="d-flex flex-wrap gap-2">
+                    <a href="{% url 'view_applicants' job.id %}" class="pass-sec-btn btn-sm">Applicants</a>
+                    <button class="pass-sec-btn btn-sm" data-bs-toggle="modal" data-bs-target="#viewJobModal{{ job.id }}">View</button>
+                    <button class="pass-sec-btn btn-sm" data-bs-toggle="modal" data-bs-target="#deleteJobModal{{ job.id }}">Delete</button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        
-          <div class="modal fade" id="viewJobModal{{ job.id }}" tabindex="-1" aria-labelledby="viewJobModalLabel{{ job.id }}" aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-scrollable">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h5 class="modal-title" id="viewJobModalLabel{{ job.id }}">{{ job.title }} ({{ job.job_type }})</h5>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                  {% if job.image %}
-                    <img src="{{ job.image.url }}" class="img-fluid mb-3" alt="{{ job.title }}">
-                  {% endif %}
-                  <p><strong>Location:</strong> {{ job.location }}</p>
-                  <p><strong>Salary:</strong> RM{{ job.salary }}</p>
-                  <p><strong>Deadline:</strong> {{ job.deadline }}</p>
-                  <p><strong>Requirements:</strong> {{ job.requirements }}</p>
-                  <p><strong>Description:</strong> {{ job.description }}</p>
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="pass-sec-btn" data-bs-dismiss="modal">Close</button>
+
+            <!-- View Job Modal -->
+            <div class="modal fade" id="viewJobModal{{ job.id }}" tabindex="-1" aria-labelledby="viewJobModalLabel{{ job.id }}" aria-hidden="true">
+              <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="viewJobModalLabel{{ job.id }}">{{ job.title }} ({{ job.job_type }})</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                  </div>
+                  <div class="modal-body">
+                    {% if job.image %}
+                      <img src="{{ job.image.url }}" class="img-fluid mb-3" alt="{{ job.title }}">
+                    {% endif %}
+                    <p><strong>Location:</strong> {{ job.location }}</p>
+                    <p><strong>Salary:</strong> RM{{ job.salary }}</p>
+                    <p><strong>Deadline:</strong> {{ job.deadline }}</p>
+                    <p><strong>Requirements:</strong> {{ job.requirements }}</p>
+                    <p><strong>Description:</strong> {{ job.description }}</p>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="pass-sec-btn" data-bs-dismiss="modal">Close</button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+
+            <!-- Delete Job Modal -->
+            <div class="modal fade" id="deleteJobModal{{ job.id }}" tabindex="-1" aria-labelledby="deleteJobLabel{{ job.id }}" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="deleteJobLabel{{ job.id }}">Confirm Deletion</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                  </div>
+                  <div class="modal-body">
+                    Are you sure you want to delete the job <strong>{{ job.title }}</strong>?
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="pass-sec-btn" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="pass-sec-btn delete-job-btn" data-id="{{ job.id }}">Delete</button>
+                  </div>
+                </div>
+              </div>
+            </div>
           {% empty %}
-            <div class="col-12"><em>No active job postings.</em></div>
+            <div class="col-12 text-center py-5">
+              <h5 class="text-muted">No active job postings.</h5>
+            </div>
           {% endfor %}
         </div>
       </section>
     </section>
   </div>
+</div>
 
-  {% block extra_scripts %}
-    {{ block.super }}
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
-  {% endblock %}
-
+{% block extra_scripts %}
+  {{ block.super }}
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
 
   <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -103,12 +106,13 @@
         }
         return '';
       }
-  
+    
       const form = document.querySelector('#postJobModal form');
       form?.addEventListener('submit', async function (e) {
         e.preventDefault();
         const formData = new FormData(form);
         const csrfToken = getCSRFToken();
+    
         try {
           const res = await fetch("{% url 'organization_dashboard' %}", {
             method: 'POST',
@@ -118,25 +122,26 @@
             },
             body: formData
           });
+    
           const result = await res.json();
           if (result.success) {
             sessionStorage.setItem("jobCreated", "1");
             location.reload();
           } else {
-            alert("Form errors: " + JSON.stringify(result.errors));
+            alert("Form errors:\n" + JSON.stringify(result.errors, null, 2));
           }
         } catch (err) {
           console.error("Submit Error", err);
           alert("Error submitting job.");
         }
       });
-  
+    
       document.addEventListener("click", async function (e) {
         const deleteBtn = e.target.closest(".delete-job-btn");
         if (deleteBtn) {
           const jobId = deleteBtn.dataset.id;
           const csrfToken = getCSRFToken();
-  
+    
           try {
             const res = await fetch(`/organization/job/${jobId}/delete/`, {
               method: 'POST',
@@ -145,45 +150,45 @@
                 'X-Requested-With': 'XMLHttpRequest'
               }
             });
-  
+    
             const data = await res.json();
             if (res.ok && data.success) {
-              const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById(`deleteJobModal${jobId}`));
-              modal.hide();
+              // Close modal safely (Bootstrap)
+              const modalEl = document.getElementById(`deleteJobModal${jobId}`);
+              const modal = bootstrap.Modal.getInstance(modalEl);
+              modal?.hide();
+    
+              document.body.classList.remove('modal-open');
+              document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+              modalEl.classList.remove('show');
+              modalEl.setAttribute('aria-hidden', 'true');
+              modalEl.style.display = 'none';
+    
               document.getElementById(`jobCard${jobId}`)?.remove();
-              showToast("Job deleted successfully", "danger");
+              alert("Job deleted successfully.");
+    
+              if (document.querySelectorAll('[id^="jobCard"]').length === 0) {
+                document.querySelector(".row.g-4").innerHTML = `
+                  <div class="col-12 text-center py-5">
+                    <h5 class="text-muted">No active job postings.</h5>
+                  </div>`;
+              }
             } else {
-              showToast("Failed to delete job.", "danger");
+              alert("Failed to delete job.");
             }
           } catch (err) {
             console.error("Delete Error", err);
-            showToast("Error deleting job", "danger");
+            alert("Error deleting job.");
           }
         }
       });
-  
-      function showToast(message, type = "success") {
-        const toast = document.createElement("div");
-        toast.className = `toast align-items-center text-bg-${type} border-0 position-fixed top-0 end-0 m-3`;
-        toast.setAttribute("role", "alert");
-        toast.setAttribute("aria-live", "assertive");
-        toast.setAttribute("aria-atomic", "true");
-        toast.innerHTML = `
-          <div class="d-flex">
-            <div class="toast-body">${message}</div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-          </div>`;
-        document.body.appendChild(toast);
-        new bootstrap.Toast(toast, { delay: 1500 }).show();
-        toast.addEventListener('hidden.bs.toast', () => toast.remove());
-      }
-  
+    
       if (sessionStorage.getItem("jobCreated") === "1") {
-        showToast("Job posted successfully", "success");
+        alert("Job posted successfully.");
         sessionStorage.removeItem("jobCreated");
       }
     });
+    
   </script>
-  
-</div>
+{% endblock %}
 {% endblock %}
