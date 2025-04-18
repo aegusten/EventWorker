@@ -1,9 +1,12 @@
 from django.db import models
 from django.utils import timezone
 from django.conf import settings
-
 from users.models import Applicant, Organization
+from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
 
+User = get_user_model()
 
 class JobPosting(models.Model):
     org = models.ForeignKey(Organization, on_delete=models.CASCADE)
@@ -44,14 +47,33 @@ class JobApplication(models.Model):
 
 
 class Message(models.Model):
-    sender = models.ForeignKey(Applicant, on_delete=models.CASCADE, related_name='sent_messages')
-    receiver = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='received_messages')
+    sender_content_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.CASCADE,
+        related_name='sent_messages',
+        null=True
+    )
+    sender_object_id = models.PositiveIntegerField(null=True)
+    sender = GenericForeignKey('sender_content_type', 'sender_object_id')
+
+    receiver_content_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.CASCADE,
+        related_name='received_messages',
+        null=True
+    )
+    receiver_object_id = models.PositiveIntegerField(null=True)
+    receiver = GenericForeignKey('receiver_content_type', 'receiver_object_id')
+
     job = models.ForeignKey(JobPosting, on_delete=models.CASCADE, null=True, blank=True)
     content = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
-
+    
     def __str__(self):
-        return f"Message from {self.sender.id_number} to {self.receiver.id_number}"
+        sender_id = getattr(self.sender, 'id_number', getattr(self.sender, 'license_number', 'UnknownSender'))
+        receiver_id = getattr(self.receiver, 'id_number', getattr(self.receiver, 'license_number', 'UnknownReceiver'))
+        return f"Message from {sender_id} to {receiver_id}"
+
 
 
 class Feedback(models.Model):

@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from core import views
 
 from .views import (
     home_redirect_view, 
@@ -18,7 +19,6 @@ from .views import (
     get_security_questions,
     public_verify_security_answers,
     get_security_questions_choices,
-    chat_view,
 )
 
 urlpatterns = [
@@ -41,7 +41,8 @@ urlpatterns = [
     path('verify_security_answers/', public_verify_security_answers, name='verify_security_answers'),
     path('get_security_questions_choices/', get_security_questions_choices, name='get_security_questions_choices'),
     path('account/', include('users.urls')),
-    path('chat/<int:job_id>/', chat_view, name='main_chat'),
+   path('chat/<int:job_id>/<int:target_user_id>/', views.chat_with_user_view, name='chat_with_user'),
+
 ]
 
 if settings.DEBUG:

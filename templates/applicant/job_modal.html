@@ -23,9 +23,59 @@
 
       <div class="modal-footer border-0 pt-0 d-flex justify-content-end gap-2">
         <button type="button" class="apply-btn" data-job-id="{{ job.id }}">Apply Now</button>
-        {% comment %} FIX CHAT {% endcomment %}
-        <button type="button" class="apply-btn chat-btn" data-job-id="{{ job.id }}">Chat</button> 
+        <a href="{% url 'chat_with_user' job.id job.org.id %}" class="apply-btn chat-btn">Chat</a>
+
       </div>
     </div>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+          const trimmed = cookie.trim();
+          if (trimmed.startsWith(name + '=')) {
+            cookieValue = decodeURIComponent(trimmed.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+    document.body.addEventListener('click', function (e) {
+      const btn = e.target.closest('.apply-btn');
+      if (btn && btn.dataset.jobId) {
+        e.preventDefault();
+
+        const jobId = btn.dataset.jobId;
+        const csrfToken = getCookie('csrftoken');
+
+        fetch(`/account/apply/${jobId}/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,
+          },
+          body: JSON.stringify({}),
+        })
+        .then(res => res.json())
+        .then(data => {
+          alert(data.message);
+          if (data.success) {
+            btn.textContent = 'Applied!';
+            btn.disabled = true;
+          }
+        })
+        .catch(error => {
+          console.error('Error applying:', error);
+          alert('Something went wrong. Please try again.');
+        });
+      }
+    });
+  });
+</script>

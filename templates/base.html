@@ -43,7 +43,7 @@
   {% include 'modals/terminate_account_modal.html' %}
   {% include 'modals/change_security_modal.html' %}
 
-  {% if messages %}
+  {% if messages and not user.id_number %}
   <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1055;">
     {% for message in messages %}
       <div class="toast align-items-center border-0 mb-2 

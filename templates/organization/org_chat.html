@@ -10,76 +10,64 @@
       {% include "organization/org_header.html" %}
 
       <div class="chat-wrapper d-flex" style="height: 85vh;">
-        <!-- LEFT: Chat List -->
         <aside class="chat-sidebar" style="width: 340px; background-color: var(--bg-secondary); color: white; flex-shrink: 0; display: flex; flex-direction: column;">
           <div style="padding: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1);">
             <h5 class="mb-3">Chats</h5>
-            <input type="text" placeholder="Search..." class="form-control form-control-sm rounded-pill shadow-sm">
           </div>
-          <ul class="list-unstyled flex-grow-1 overflow-auto px-2 py-2">
-            <li class="d-flex align-items-center gap-2 p-2 rounded-3 mb-2 bg-white bg-opacity-10 chat-item active" style="cursor: pointer;">
-              <img src="{% static 'images/avatar1.png' %}" class="rounded-circle" width="45" height="45">
-              <div class="flex-grow-1">
-                <div class="fw-bold">Ali Ahmad</div>
-                <div class="small text-light">Web Developer</div>
-              </div>
-              <small>10:26 AM</small>
-            </li>
-            <li class="d-flex align-items-center gap-2 p-2 rounded-3 mb-2 chat-item" style="cursor: pointer;">
-              <img src="{% static 'images/avatar2.png' %}" class="rounded-circle" width="45" height="45">
-              <div class="flex-grow-1">
-                <div class="fw-bold">Sara Lim</div>
-                <div class="small text-light">Event Planner</div>
-              </div>
-              <small>Yesterday</small>
-            </li>
-            <li class="d-flex align-items-center gap-2 p-2 rounded-3 chat-item" style="cursor: pointer;">
-              <img src="{% static 'images/avatar3.png' %}" class="rounded-circle" width="45" height="45">
-              <div class="flex-grow-1">
-                <div class="fw-bold">John Tan</div>
-                <div class="small text-light">IT Support</div>
-              </div>
-              <small>2 days ago</small>
-            </li>
+          <ul class="list-unstyled flex-grow-1 overflow-auto px-2 py-2 d-flex flex-column gap-2">
+            {% for conv, last_msg in conversations %}
+              {% with partner=conv.0 job=conv.1 %}
+              <li class="d-flex align-items-center gap-2 p-2 rounded-3 chat-item {% if partner == target_user %}bg-white bg-opacity-25{% endif %}" style="cursor: pointer;">
+                <a href="{% url 'chat_with_user' job.id partner.id %}" class="text-white text-decoration-none d-flex flex-grow-1 justify-content-between">
+                  <div>
+                    <div class="fw-bold">
+                      {% if partner.organization_name %}
+                        {{ partner.organization_name }}
+                      {% elif partner.full_name %}
+                        {{ partner.full_name }}
+                      {% else %}
+                        Unknown User
+                      {% endif %}
+                    </div>
+                    
+                    <div class="small text-light">{{ partner.email }}</div>
+                  </div>
+                  <small>{{ last_msg.timestamp|date:"P" }}</small>
+                </a>
+              </li>
+              {% endwith %}
+            {% empty %}
+              <li class="text-light text-center">No conversations</li>
+            {% endfor %}
           </ul>
         </aside>
 
-        <!-- RIGHT: Chat Window -->
         <div class="chat-main d-flex flex-column flex-grow-1" style="background-color: var(--bg-main);">
-          <!-- Top header -->
           <div class="d-flex align-items-center justify-content-between border-bottom px-4 py-3 bg-white">
             <div class="d-flex align-items-center gap-3">
-              <img src="{% static 'images/avatar1.png' %}" class="rounded-circle" width="45" height="45">
               <div>
-                <div class="fw-bold">Ali Ahmad</div>
-                <div class="small text-muted">Web Developer</div>
+                <div class="fw-bold">{{ target_user.full_name }}</div>
+                <div class="small text-muted">{{ target_user.email }}</div>
               </div>
             </div>
-            <div class="text-muted fs-5">
-              <i class="bi bi-telephone me-4"></i>
-              <i class="bi bi-camera-video"></i>
-            </div>
           </div>
 
-          <!-- Message Area -->
-          <div class="flex-grow-1 px-4 py-3 overflow-auto d-flex flex-column gap-3" style="background-color: #e6eeee;">
-            <div class="align-self-start">
-              <div class="bg-white shadow-sm rounded-3 px-4 py-2 mb-1">Hi, thanks for applying! Can you tell us more about your experience?</div>
-              <small class="text-muted">10:23 AM</small>
-            </div>
-            <div class="align-self-end text-end">
-              <div class="bg-success text-white rounded-3 px-4 py-2 mb-1">Sure! I’ve been working with Django and React for 3 years now.</div>
-              <small class="text-muted">10:25 AM</small>
-            </div>
-            <div class="align-self-start">
-              <div class="bg-white shadow-sm rounded-3 px-4 py-2 mb-1">That’s great! We’ll get back to you soon.</div>
-              <small class="text-muted">10:26 AM</small>
-            </div>
+          <div id="chat-body" class="flex-grow-1 px-4 py-3 overflow-auto d-flex flex-column gap-3" style="background-color: #e6eeee;">
+            {% for msg in messages %}
+              <div class="{% if msg.sender == request.user %}align-self-end text-end{% else %}align-self-start{% endif %} d-flex flex-column">
+                <div class="rounded-3 px-4 py-2 mb-1 shadow-sm {% if msg.sender == request.user %}bg-success text-white{% else %}bg-white text-dark{% endif %}">
+                  {{ msg.content }}
+                </div>
+                <small class="text-muted">{{ msg.timestamp|date:"M d, H:i" }}</small>
+              </div>
+            {% empty %}
+              <p class="text-center text-muted">No messages yet</p>
+            {% endfor %}
           </div>
 
-          <!-- Message Input -->
-          <form class="border-top px-4 py-3 d-flex align-items-center gap-3 bg-white">
-            <input type="text" placeholder="Type a message..." class="form-control rounded-pill shadow-sm">
+          <form id="org-chat-form" class="border-top px-4 py-3 d-flex align-items-center gap-3 bg-white">
+            {% csrf_token %}
+            <input id="org-chat-input" type="text" name="message" placeholder="Type a message..." class="form-control rounded-pill shadow-sm" required>
             <button type="submit" class="btn btn-success rounded-circle d-flex justify-content-center align-items-center" style="width: 45px; height: 45px;">
               <i class="bi bi-send-fill fs-5 text-white"></i>
             </button>
@@ -89,4 +77,49 @@
     </section>
   </div>
 </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const chatBody = document.getElementById("chat-body");
+    const form = document.getElementById("org-chat-form");
+    const input = document.getElementById("org-chat-input");
+
+    chatBody.scrollTop = chatBody.scrollHeight;
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      const message = input.value.trim();
+      if (!message) return;
+
+      fetch("", {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: new URLSearchParams({ message })
+      })
+      .then(response => {
+        if (response.ok) {
+          const now = new Date();
+          const timestamp = now.toLocaleString('default', {
+            month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+          });
+
+          const wrapper = document.createElement("div");
+          wrapper.className = "align-self-end text-end d-flex flex-column";
+
+          wrapper.innerHTML = `
+            <div class="bg-success text-white rounded-3 px-4 py-2 mb-1 shadow-sm">${message}</div>
+            <small class="text-muted">${timestamp}</small>
+          `;
+
+          chatBody.appendChild(wrapper);
+          chatBody.scrollTop = chatBody.scrollHeight;
+          input.value = "";
+        }
+      });
+    });
+  });
+</script>
 {% endblock %}

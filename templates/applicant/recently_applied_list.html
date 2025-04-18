@@ -13,11 +13,12 @@
           <p>{{ app.job.location }}</p>
           <p><strong>Status:</strong> {{ app.get_status_display }}</p>
           <div class="d-flex justify-content-between mt-2">
-            {% if app.status != 'rejected' %}
-              <a href="#" class="apply-btn chat-btn" data-job-id="{{ app.job.id }}">Chat</a>
+            {% if app.status != 'rejected' and app.job and app.job.org and app.job.org.is_active %}
+              <a href="{% url 'chat_with_user' app.job.id app.job.org.id %}" class="apply-btn">Chat</a>
             {% else %}
               <span class="text-danger fw-bold">Rejected</span>
             {% endif %}
+            
           </div>
         </div>
       </div>

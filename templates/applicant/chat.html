@@ -1,47 +1,136 @@
-{% extends "base.html" %}
-{% load static %}
-
-{% block content %}
-<div class="applicant-dashboard">
-  <header class="main-header">
-    {% include "applicant/applicant_header.html" %}
-  </header>
-
-  <section class="search-filter-section">
-    <h2 class="ms-3">Chat with {{ organization.organization_name }}</h2>
-  </section>
-
-  <div class="dashboard-grid">
-    {% include "applicant/apl_sidebar.html" %}
-
-    <div class="chat-wrapper">
-      <div class="chat-list">
-        <ul>
-          <li class="chat-active"><strong>{{ organization.organization_name }}</strong> – {{ job.title }}</li>
-        </ul>
-      </div>
-
-      <div class="chat-box">
-        <div class="chat-header">
-          <strong>Chat with {{ organization.organization_name }} – {{ job.title }}</strong>
-        </div>
-
-        <div class="chat-messages">
-          {% for msg in messages %}
-            <div class="chat-message {% if msg.sender == applicant %}you{% else %}company{% endif %}">
-              <span>{{ msg.content }}</span>
-              <small>{{ msg.timestamp|date:"H:i" }}</small>
+{% if job.is_active and target_user.is_active %}
+<div class="ewchat-wrapper">
+  <aside class="ewchat-sidebar">
+    <div class="ewchat-sidebar-header">
+      <h5>Chats</h5>
+    </div>
+    <ul class="ewchat-contacts">
+      {% for conv, last_msg in conversations %}
+        {% with partner=conv.0 job=conv.1 %}
+        <li class="ewchat-item {% if target_user == partner %}active{% endif %}">
+          <a href="{% url 'chat_with_user' job.id partner.id %}" class="text-decoration-none text-reset d-block p-2">
+            <div class="fw-bold">
+              {% if partner.full_name %}
+                {{ partner.full_name }}
+              {% elif partner.organization_name %}
+                {{ partner.organization_name }}
+              {% else %}
+                {{ partner.email }}
+              {% endif %}
             </div>
-          {% endfor %}
-        </div>
+            <div class="small">{{ last_msg.timestamp|date:"P" }}</div>
+          </a>
+        </li>
+        {% endwith %}
+      {% endfor %}
+    </ul>
+  </aside>
 
-        <form method="POST" class="chat-form">
-          {% csrf_token %}
-          <input type="text" name="message" placeholder="Type your message..." class="chat-input" required>
-          <button type="submit" class="chat-send">Send</button>
-        </form>
+  <div class="ewchat-main">
+    <div class="ewchat-header">
+      <div class="ewchat-header-info">
+        <p class="chat-name">
+          {% if target_user.full_name %}
+            {{ target_user.full_name }}
+          {% elif target_user.organization_name %}
+            {{ target_user.organization_name }}
+          {% else %}
+            {{ target_user.email }}
+          {% endif %}
+        </p>
+        <p class="chat-subtitle">{{ target_user.email }}</p>
       </div>
     </div>
+
+    <div class="ewchat-body">
+      {% for msg in messages %}
+        <div class="message {% if msg.sender == request.user %}align-self-end{% else %}align-self-start{% endif %}">
+          <div class="bubble">{{ msg.content }}</div>
+          <div class="timestamp">{{ msg.timestamp|date:"M d, H:i" }}</div>
+        </div>
+      {% empty %}
+        <div class="text-center text-muted">No messages yet</div>
+      {% endfor %}
+    </div>
+
+    <form id="chat-form" class="ewchat-input-area">
+      {% csrf_token %}
+      <input type="text" name="message" id="chat-message" class="chat-input" placeholder="Type a message..." required />
+      <button type="submit" class="chat-send-btn">
+        <i class="bi bi-send-fill"></i>
+      </button>
+    </form>
   </div>
 </div>
-{% endblock %}
+{% else %}
+  <div class="text-center mt-5">
+    <h4 class="text-danger">This chat is no longer available.</h4>
+    <p class="text-muted">The job has been removed or the user is deactivated.</p>
+  </div>
+{% endif %}
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("chat-form");
+    const messageInput = document.getElementById("chat-message");
+    const chatBody = document.querySelector(".ewchat-body");
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const message = messageInput.value.trim();
+      if (!message) return;
+
+      fetch("", {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({ message })
+      })
+      .then(response => {
+        if (response.ok) {
+          const now = new Date();
+          const timestamp = now.toLocaleString('default', {
+            month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+          });
+
+          const msgDiv = document.createElement("div");
+          msgDiv.className = "message align-self-end";
+          msgDiv.innerHTML = `
+            <div class="bubble">${message}</div>
+            <div class="timestamp">${timestamp}</div>
+          `;
+          chatBody.appendChild(msgDiv);
+          messageInput.value = "";
+          chatBody.scrollTop = chatBody.scrollHeight;
+        }
+      });
+    });
+  });
+</script>
+
+<style>
+  .ewchat-body {
+    height: 400px;
+    overflow-y: auto;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .message {
+    max-width: 70%;
+  }
+
+  .align-self-start {
+    align-self: flex-start;
+  }
+
+  .align-self-end {
+    align-self: flex-end;
+    text-align: right;
+  }
+</style>

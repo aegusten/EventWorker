@@ -12,6 +12,12 @@ from backend.models import JobPosting, JobApplication
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from core.views import get_user_conversations
+from backend.models import (
+    Message,
+)
+from django.db.models import Q
+from django.contrib.contenttypes.models import ContentType
 
 @login_required
 def profile_view(request):
@@ -176,9 +182,43 @@ def submit_feedback(request, app_id):
     return redirect("recently_applied")
 
 @login_required
-def chat_view(request, job_id):
-    job = get_object_or_404(JobPosting, id=job_id)
+def applicant_chat_view(request):
+    user = request.user
+    conversations = get_user_conversations(user)
 
-    return render(request, 'applicant/chat.html', {
-        'job': job
+    if not conversations:
+        return render(request, 'applicant/main_chat.html', {
+            'job': None,
+            'target_user': None,
+            'messages': [],
+            'conversations': []
+        })
+
+    (partner, job), last_msg = conversations[0]
+
+    user_ct = ContentType.objects.get_for_model(user.__class__)
+    partner_ct = ContentType.objects.get_for_model(partner.__class__)
+
+    messages_qs = Message.objects.filter(
+        job=job
+    ).filter(
+        Q(
+            sender_content_type=user_ct,
+            sender_object_id=user.id,
+            receiver_content_type=partner_ct,
+            receiver_object_id=partner.id
+        ) |
+        Q(
+            sender_content_type=partner_ct,
+            sender_object_id=partner.id,
+            receiver_content_type=user_ct,
+            receiver_object_id=user.id
+        )
+    ).order_by("timestamp")
+
+    return render(request, 'applicant/main_chat.html', {
+        'job': job,
+        'target_user': partner,
+        'messages': messages_qs,
+        'conversations': conversations
     })
