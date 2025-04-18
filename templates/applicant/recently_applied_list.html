@@ -35,7 +35,6 @@
       </div>
 
       {% if app.status == 'accepted' and not app.feedback and app.id %}
-        <!-- Feedback Modal -->
         <div class="modal fade" id="feedbackModal{{ app.id }}" tabindex="-1" aria-labelledby="feedbackLabel{{ app.id }}" aria-hidden="true">
           <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content p-3">

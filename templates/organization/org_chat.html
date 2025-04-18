@@ -29,8 +29,13 @@
                         Unknown User
                       {% endif %}
                     </div>
-                    
-                    <div class="small text-light">{{ partner.email }}</div>
+                    <div class="small text-warning">
+                      {{ job.title }}
+                    </div>
+          
+                    <div class="small text-light">
+                      {{ partner.email }}
+                    </div>
                   </div>
                   <small>{{ last_msg.timestamp|date:"P" }}</small>
                 </a>
@@ -40,6 +45,7 @@
               <li class="text-light text-center">No conversations</li>
             {% endfor %}
           </ul>
+          
         </aside>
 
         <div class="chat-main d-flex flex-column flex-grow-1" style="background-color: var(--bg-main);">
@@ -73,12 +79,11 @@
               <i class="bi bi-send-fill fs-5 text-white"></i>
             </button>
           </form>
-          {% else %}
+        {% else %}
           <div class="text-center text-muted p-3 border-top bg-white">
             <em>This user is no longer active. You cannot send messages.</em>
           </div>
-          {% endif %}
-          
+        {% endif %}          
         </div>
       </div>
     </section>
@@ -130,3 +135,13 @@
   });
 </script>
 {% endblock %}
+
+<style>
+
+    .chat-disabled {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+  
+</style>

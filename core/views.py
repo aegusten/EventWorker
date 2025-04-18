@@ -448,21 +448,12 @@ def chat_with_user_view(request, job_id, target_user_id):
     elif hasattr(current_user, 'id_number'):
         target_user = job.org
         if target_user.id != target_user_id:
-        
             raise Http404("Mismatched organization ID.")
     else:
         raise Http404("Unknown user type.")
 
     if current_user == target_user:
         return JsonResponse({'error': 'Cannot message yourself.'}, status=400)
-
-    if not job.is_active or not target_user.is_active:
-        return render(request, 'applicant/chat.html', {
-            'job': job,
-            'target_user': target_user,
-            'messages': [],
-            'conversations': []
-        })
 
     current_user_ct = ContentType.objects.get_for_model(current_user.__class__)
     target_user_ct = ContentType.objects.get_for_model(target_user.__class__)
@@ -475,10 +466,7 @@ def chat_with_user_view(request, job_id, target_user_id):
           receiver_content_type=current_user_ct, receiver_object_id=current_user.id)
     ).order_by("timestamp")
 
-    conversations = [
-        (partner, job) for (partner, job), last_msg in get_user_conversations(user)
-        if partner.is_active
-    ]
+    conversations = get_user_conversations(current_user)
 
     if request.method == 'POST':
         content = request.POST.get("message", "").strip()
@@ -491,17 +479,21 @@ def chat_with_user_view(request, job_id, target_user_id):
             )
         return redirect('chat_with_user', job_id=job.id, target_user_id=target_user.id)
 
+    chat_disabled = not (job.is_active and current_user.is_active and target_user.is_active)
+
     context = {
         'job': job,
         'target_user': target_user,
         'messages': messages_qs,
         'conversations': conversations,
+        'chat_disabled': chat_disabled,
     }
 
     if hasattr(current_user, 'license_number'):
         return render(request, 'organization/org_chat.html', context)
     else:
         return render(request, 'applicant/main_chat.html', context)
+
 
 @login_required
 def terminate_account(request):
