@@ -475,7 +475,10 @@ def chat_with_user_view(request, job_id, target_user_id):
           receiver_content_type=current_user_ct, receiver_object_id=current_user.id)
     ).order_by("timestamp")
 
-    conversations = get_user_conversations(current_user)
+    conversations = [
+        (partner, job) for (partner, job), last_msg in get_user_conversations(user)
+        if partner.is_active
+    ]
 
     if request.method == 'POST':
         content = request.POST.get("message", "").strip()
